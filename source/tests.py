@@ -87,7 +87,7 @@ class TestFit(unittest.TestCase):
                 #self.assertTrue(dist_desired_sk == 0)
     
         print("test_equal_to_templates() - start")
-        pathloc = f"~/repos/softproj/resources/test_data_2"
+        pathloc = f"../resources/test_data_2"
         test_equal_to_template_idx(3,  333,                       0, f"{pathloc}/input_1_db_1.txt", f"{pathloc}/input_1_db_2.txt")
         test_equal_to_template_idx(7,  kmeans_pp.MAX_ITER_UNSPEC, 0, f"{pathloc}/input_2_db_1.txt", f"{pathloc}/input_2_db_2.txt")
         test_equal_to_template_idx(15, 750,                       0, f"{pathloc}/input_3_db_1.txt", f"{pathloc}/input_3_db_2.txt")

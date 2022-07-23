@@ -182,7 +182,7 @@ def get_data_from_cmd():
         for point in data:
             if len(point) != dims:
                 raise GenericErrorTrigger(f"First datapoint has dimension {dims}, but one datapoint has dimension {len(point)}")
-            if point and (not point[0].is_integer()) or (not (0 <= int(point[0]) <= N)):
+            if (len(point) >= 1) and (not point[0].is_integer()) or (not (0 <= int(point[0]) <= N)):
                 raise GenericErrorTrigger(f"One of the datapoints is missing a valid index in its first dimension")
         if not (0 < k < N):
             raise InvalidInputTrigger("The following must hold: 0 < k < n, but k={k} and n={N}")
