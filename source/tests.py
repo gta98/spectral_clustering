@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import sklearn.cluster
 import kmeans_pp
+import kmeans_sk
 from typing import List
 import math
 import time
@@ -16,127 +17,6 @@ import re
 
 
 class TestFit(unittest.TestCase):
-
-    @unittest.skip("blah")
-    def test_c_and_sklearn_equal(self):
-        print("test_py_and_c_equal_random() - start")
-        seed = np.random.randint(1, 100000)
-        print(f"setting seed={seed}")
-        np.random.seed(seed)
-        fit_params = list(randomize_fit_params(k=10, max_iter=150, eps=0.01))
-        (
-            initial_centroids_list,
-            datapoints_list,
-            dims_count,
-            k,
-            point_count,
-            max_iter,
-            eps
-        ) = fit_params
-        centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
-        centroids_list_c = mykmeanssp.fit(*fit_params)
-        centroids_list_sk = sklearn.cluster.KMeans(
-            n_clusters=k,
-            init=np.array([datapoints_list[idx] for idx in initial_centroids_list]),
-            max_iter=max_iter,
-            tol=eps,
-            n_init=1,
-            random_state=0,
-            algorithm="full",
-        ).fit(datapoints_list).cluster_centers_
-        centroids_list_sk = np.sort(np.array(centroids_list_sk))
-        centroids_list_c = np.sort(np.array(centroids_list_c))
-        centroids_list_py = np.sort(np.array(centroids_list_py))
-        #print(f"centroids_list_sk={centroids_list_sk}")
-        #print(f"ceeeeeee: {centroids_list_c}")
-        relative_error = round((np.linalg.norm(centroids_list_sk-centroids_list_c)/np.linalg.norm(centroids_list_sk))*100,2)
-        relative_error_py_c = round((np.linalg.norm(centroids_list_py-centroids_list_c)/np.linalg.norm(centroids_list_py))*100,2)
-        relative_error_py_sk = round((np.linalg.norm(centroids_list_py-centroids_list_sk)/np.linalg.norm(centroids_list_sk))*100,2)
-        print(f"relative errors:  c,sk = {relative_error}%,  c,py = {relative_error_py_c}%,  py,sk = {relative_error_py_sk}%")
-        #print(centroids_list_sk)
-        #print(centroids_list_py)
-        """
-        if relative_error_py_c > 0:
-            print("blah")
-            print(centroids_list_c)
-            print(centroids_list_py)
-            print(f" \n\
-            (\n\
-            initial_centroids_list={initial_centroids_list},\n\
-            datapoints_list={datapoints_list},\n\
-            dims_count={dims_count},\n\
-            k={k},\n\
-            point_count={point_count},\n\
-            max_iter={max_iter},\n\
-            eps={eps}\n\
-            )")
-            self.assertTrue(False)
-        else:
-            #print("Durkha")
-            pass
-        self.assertTrue(True)#relative_error < 5.00)
-        """
-    
-    @unittest.skip("blah")
-    def test_py_and_mine_equal(self):
-        print("test_py_and_mine_equal_random() - start")
-        seed = np.random.randint(1, 100000)
-        print(f"setting seed={seed}")
-        np.random.seed(seed)
-        fit_params = list(randomize_fit_params(k=3, max_iter=150, eps=0.01))
-        (
-            initial_centroids_list,
-            datapoints_list,
-            dims_count,
-            k,
-            point_count,
-            max_iter,
-            eps
-        ) = fit_params
-        print(initial_centroids_list)
-        centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
-        centroids_list_c = kmeans_2.KmeansAlgorithm(*fit_params)
-        centroids_list_sk = sklearn.cluster.KMeans(
-            n_clusters=k,
-            init=np.array([datapoints_list[idx] for idx in initial_centroids_list]),
-            max_iter=max_iter,
-            tol=eps,
-            n_init=1,
-            random_state=0,
-            algorithm="full",
-        ).fit(datapoints_list).cluster_centers_
-        centroids_list_sk = np.array(centroids_list_sk)
-        centroids_list_c = np.array(centroids_list_c)
-        centroids_list_py = np.array(centroids_list_py)
-        #print(f"centroids_list_sk={centroids_list_sk}")
-        #print(f"ceeeeeee: {centroids_list_c}")
-        relative_error = round((np.linalg.norm(centroids_list_sk-centroids_list_c)/np.linalg.norm(centroids_list_sk))*100,2)
-        relative_error_py_c = round((np.linalg.norm(centroids_list_py-centroids_list_c)/np.linalg.norm(centroids_list_py))*100,2)
-        relative_error_py_sk = round((np.linalg.norm(centroids_list_py-centroids_list_sk)/np.linalg.norm(centroids_list_sk))*100,2)
-        print(f"relative errors:  mine,sk = {relative_error}%,  mine,py = {relative_error_py_c}%,  py,sk = {relative_error_py_sk}%")
-        #print(centroids_list_sk)
-        #print(centroids_list_py)
-        """
-        if relative_error_py_c > 0:
-            print("blah")
-            print(centroids_list_c)
-            print(centroids_list_py)
-            print(f" \n\
-            (\n\
-            initial_centroids_list={initial_centroids_list},\n\
-            datapoints_list={datapoints_list},\n\
-            dims_count={dims_count},\n\
-            k={k},\n\
-            point_count={point_count},\n\
-            max_iter={max_iter},\n\
-            eps={eps}\n\
-            )")
-            self.assertTrue(False)
-        else:
-            #print("Durkha")
-            pass"""
-        self.assertTrue(relative_error_py_c == 0)
-
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
@@ -147,27 +27,9 @@ class TestFit(unittest.TestCase):
             pass
 
 
-    @unittest.skip("enable later")
-    def test_py_and_c_equal_random(self):
-        print("test_py_and_c_equal_random() - start")
-        fit_params = list(randomize_fit_params())
-        centroids_list_py = kmeans_1.KmeansAlgorithm(*fit_params)
-        centroids_list_c = mykmeanssp.fit(*fit_params)
-        centroids_list_py = np.array(centroids_list_py)
-        centroids_list_c = np.array(centroids_list_c)
-        dist_c  = np.all(np.abs(centroids_list_py-centroids_list_c) < 0.001)
-        assert(dist_c)
-    
-    @unittest.skip("Passing")
-    def check_crash(self):
-        with open('/home/ubuntu/lala2.bin','rb') as f:
-            fit_params = pickle.loads(f.read())
-        centroids_list_py = kmeans_pp.KmeansAlgorithm(*fit_params)
-        print("survived")
-    
-    #@unittest.skip("What do we need this for")
+    @unittest.skip("We only care about correctness for now")
     def test_my_py_runtime_vs_sklearn(self):
-        print("Blargh")
+        print("test_my_py_runtime_vs_sklearn() - START")
         for i in range(1000):
             np.random.seed(i)
             #print(f"hai {i}")
@@ -186,6 +48,8 @@ class TestFit(unittest.TestCase):
             #print(f"delta_py/delta_sk={delta_py/delta_sk}")
             print(f"relative err = {relative_sk_py}")
             pass
+        print("test_my_py_runtime_vs_sklearn() - END")
+
 
     #@unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
@@ -223,7 +87,7 @@ class TestFit(unittest.TestCase):
                 #self.assertTrue(dist_desired_sk == 0)
     
         print("test_equal_to_templates() - start")
-        pathloc = f"/home/ubuntu/repos/softproj_2/resources/test_data_2"
+        pathloc = f"~/repos/softproj/resources/test_data_2"
         test_equal_to_template_idx(3,  333,                       0, f"{pathloc}/input_1_db_1.txt", f"{pathloc}/input_1_db_2.txt")
         test_equal_to_template_idx(7,  kmeans_pp.MAX_ITER_UNSPEC, 0, f"{pathloc}/input_2_db_1.txt", f"{pathloc}/input_2_db_2.txt")
         test_equal_to_template_idx(15, 750,                       0, f"{pathloc}/input_3_db_1.txt", f"{pathloc}/input_3_db_2.txt")

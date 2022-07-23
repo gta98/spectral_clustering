@@ -1,4 +1,4 @@
-cd ~/repos/softproj_2
+cd ~/repos/softproj
 cp -r scripts/* debug
 cp -r source/* debug
 cp -r resources/test_data_2/* debug 

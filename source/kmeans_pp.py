@@ -5,11 +5,21 @@ import numpy as np
 import pandas as pd
 import mykmeanssp
 
+CHANGE_TO_TRUE_BEFORE_ASSIGNMENT = False
+
+FLAG_PRODUCTION = CHANGE_TO_TRUE_BEFORE_ASSIGNMENT
+FLAG_DEBUG = not FLAG_PRODUCTION
+FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
+FLAG_VERBOSE_ERRORS = True and FLAG_DEBUG
+
 MSG_ERR_INVALID_INPUT = "Invalid Input!"
 MSG_ERR_GENERIC = "An Error Has Occurred"
 
 INFINITY = float('inf')
 MAX_ITER_UNSPEC = 300
+
+class InvalidInputTrigger(ValueError): pass
+class GenericErrorTrigger(Exception): pass
 
 
 def main():
@@ -17,6 +27,7 @@ def main():
     fit_params = extract_fit_params()
     results = KmeansAlgorithm(*fit_params)
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
+
 
 
 def KmeansAlgorithm(*fit_params) -> List[List[float]]:
@@ -66,6 +77,8 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
                 min_square_dist = min(square_dist, min_square_dist)
             D[l] = min_square_dist
         D_sum = sum(D)
+        if D_sum <= 0:
+            raise GenericErrorTrigger(f"Somehow reached D_sum = {D_sum}, but P values must be nonnegative and finite")
         P = D/D_sum
 
         i += 1
@@ -108,7 +121,7 @@ def select_actual_centroids(data: List[List[float]], initial_centroids_list: Lis
     for i, centroid in enumerate(initial_centroids_list):
         loc = np.where(np.all(data==centroid,axis=1))[0] #[0] because this returns a tuple
         if len(loc) == 0: # or len(loc)>=2?
-            exit_error()
+            raise GenericErrorTrigger(f"There should only be one match among the datapoints for every initial centroid, but one got {len(loc)} matches")
         initial_centroids_indices_actual[i] = loc[0]
     return initial_centroids_indices_actual
 
@@ -117,27 +130,32 @@ def get_data_from_cmd():
 
     def _get_cmd_args():
         args = sys.argv
+        if not args:
+            raise InvalidInputTrigger("Args are empty!")
         if args[0] in ["python", "python3", "python.exe", "python3.exe"]:
             args = args[1:]
+            if not args:
+                raise InvalidInputTrigger("Args are empty after removing \"python\" prefix")
         if args[0][-3:] == ".py":
             args = args[1:]
+            if not args:
+                raise InvalidInputTrigger("Args are empty after removing executable filename prefix")
         try:
             if len(args) == 4:  # without max_itr
                 return int(args[0]), MAX_ITER_UNSPEC, float(args[1]), args[2], args[3]
             elif len(args) == 5:
                 return int(args[0]), int(args[1]), float(args[2]), args[3], args[4]
             else:
-                raise Exception()
+                raise InvalidInputTrigger("Cannot parse input format - number of args must be in {4,5}")
         except:
-            exit_invalid_input()
+            raise InvalidInputTrigger("An error has occurred while parsing CLI input - one of the arguments is NaN")
 
     def _validate_input_filenames(file_name1: str, file_name2: str) -> bool:
         for file in [file_name1, file_name2]:
             if not os.path.exists(file):
-                exit_invalid_input()
+                raise InvalidInputTrigger(f"Specified path does not exist - \"{file}\"")
             if not (file.lower().endswith("csv") or file.lower().endswith("txt")):
-                exit_invalid_input()
-        return True
+                raise InvalidInputTrigger(f"Specified path does not end in a permitted extension - \"{file}\"")
     
     def _read_data_as_np(file_name1: str, file_name2: str) -> np.array:
         path_file1 = os.path.join(os.getcwd(), file_name1)
@@ -157,22 +175,19 @@ def get_data_from_cmd():
         # verify data shape
         N = len(data)
         if N == 0:
-            exit_error()
+            raise GenericErrorTrigger("Data, as parsed, is empty - nothing to work on")
         dims = len(data[0])
-        if dims == 0:
-            exit_error()
+        if (dims-1) < 1:
+            raise GenericErrorTrigger("Datapoints number of dimensions must be at least 1, not including dimension 0 (index)")
         for point in data:
             if len(point) != dims:
-                exit_error()
-        if k >= len(datapoints_list):
-            exit_invalid_input() # k cannot be as large as or larger than datapoints_list
-        if k < 0:
-            exit_invalid_input() # it can also not be negative
+                raise GenericErrorTrigger(f"First datapoint has dimension {dims}, but one datapoint has dimension {len(point)}")
+            if point and (not point[0].is_integer()) or (not (0 <= int(point[0]) <= N)):
+                raise GenericErrorTrigger(f"One of the datapoints is missing a valid index in its first dimension")
+        if not (0 < k < N):
+            raise InvalidInputTrigger("The following must hold: 0 < k < n, but k={k} and n={N}")
         if eps < 0:
-            exit_invalid_input() # epsilon cannot be negative
-        for point in data:
-            if not point[0].is_integer():
-                exit_error() # first item in every data row must be an index
+            raise InvalidInputTrigger("Specified epsilon={eps}, but epsilon cannot be negative")
     
     k, max_iter, eps, file_name_1, file_name_2 = _get_cmd_args()
     _validate_input_filenames(file_name_1, file_name_2)
@@ -181,18 +196,23 @@ def get_data_from_cmd():
     return k, max_iter, eps, datapoints_list
 
 
-def exit_error():
-    exit_with_msg(MSG_ERR_GENERIC)
-
-
-def exit_invalid_input():
-    exit_with_msg(MSG_ERR_INVALID_INPUT)
-
-
-def exit_with_msg(msg: str):
-    print(msg)
-    exit(1)
+def exit_gracefully_with_err(err: Exception):
+    def exit_gracefully_with_err_string(msg: str):
+        print(msg)
+        exit(1)
+    error_to_string_map = {} if FLAG_VERBOSE_ERRORS else {
+        InvalidInputTrigger: MSG_ERR_INVALID_INPUT       ,
+        GenericErrorTrigger: MSG_ERR_GENERIC             }
+    exit_gracefully_with_err_string(error_to_string_map.get(type(err),
+        f"Exiting gracefully with an unexplained error:\n{str(err)}"))
 
 
 if __name__ == '__main__':
-    main()
+    if not CHANGE_TO_TRUE_BEFORE_ASSIGNMENT:
+        print("===== WARNING =====")
+        print("      MAKE SURE YOU CHANGE CHANGE_TO_TRUE_BEFORE_ASSIGNMENT TO TRUE BEFORE ASSIGNMENT")
+        print("      OTHERWISE, YOU WILL GET DEBUG BEHAVIOR")
+    try:
+        main()
+    except Exception as e:
+        exit_gracefully_with_err(e)
