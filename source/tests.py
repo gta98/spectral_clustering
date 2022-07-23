@@ -8,10 +8,6 @@ import sys
 import numpy as np
 import sklearn.cluster
 import kmeans_pp
-import kmeans as kmeans_2
-import kmeans_mine as kmeans_1
-import kmeans_sk
-import mykmeanssp
 from typing import List
 import math
 import time
