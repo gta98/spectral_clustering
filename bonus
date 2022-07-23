@@ -1,3 +1,0 @@
-./scripts/copy
-cd debug
-python3 bonus.py
