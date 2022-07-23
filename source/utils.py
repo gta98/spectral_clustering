@@ -26,11 +26,13 @@ def is_diagonal_matrix(A: np.ndarray) -> bool:
 
 def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     # returns weighted adjacency matrix
-    assert(datapoints.ndim == 1)
-    datapoints_horizontal = datapoints #datapoints_horizontal = datapoints.squeeze()
-    datapoints_vertical = transpose_1d(datapoints_horizontal)
-    x_dist = datapoints_vertical - datapoints_horizontal
-    w_with_diagonal = np.exp(-1 * ((x_dist ** 2) / 2))
+    assert(datapoints.ndim == 2)
+    n, d = datapoints.shape
+    datapoints_horizontal = datapoints.reshape((1,n,d)) #datapoints_horizontal = datapoints.squeeze()
+    datapoints_vertical = datapoints_horizontal.swapaxes(0,1)
+    datapoints_delta = datapoints_vertical - datapoints_horizontal
+    datapoints_dist_squared = np.sum(datapoints_delta**2, axis=2)
+    w_with_diagonal = np.exp(-1 * (datapoints_dist_squared / 2))
     w = w_with_diagonal - np.diag(w_with_diagonal.diagonal())
     return w
 
@@ -40,7 +42,7 @@ def calc_ddg(datapoints: np.ndarray) -> np.ndarray:
     d = np.diag(w_sum_along_horizontal_axis)
     return d
 
-def calc_lnorm(datapoints: np.ndarray) -> np.ndarray:
+def calc_L_norm(datapoints: np.ndarray) -> np.ndarray:
     I = np.diag(np.ones_like(datapoints))
     W = calc_wam(datapoints)
     D = calc_ddg(datapoints) # could make this run faster by reusing W
@@ -113,6 +115,21 @@ def jacobi_algorithm(A_original: np.ndarray, eps:int, max_rotations:int) -> Tupl
     eigenvalues = A_tag.diagonal()
     eigenvectors = V
     return eigenvalues, eigenvectors
+
+def calc_eigengap(datapoints: np.ndarray, eps:int, max_rotations:int) -> np.ndarray:
+
+    L_norm = calc_L_norm(datapoints)
+    eigenvalues, eigenvectors = jacobi_algorithm(L_norm, eps, max_rotations)
+    n = eigenvalues.shape[0]
+    assert(n >= 2) # eigengap is undefined for n in {0,1}
+    half_n = int(np.floor(n/2))
+    eigenvalues_i_plus_1 = eigenvalues[1:]
+    eigenvalues_i = eigenvalues[:-1]
+    delta = np.abs(eigenvalues_i - eigenvalues_i_plus_1)
+
+    delta_max = -1 * np.inf
+    for i in range(half_n):
+        if delta_max < 
 
 
 
