@@ -117,20 +117,20 @@ def jacobi_algorithm(A_original: np.ndarray, eps:int, max_rotations:int) -> Tupl
     return eigenvalues, eigenvectors
 
 def calc_eigengap(datapoints: np.ndarray, eps:int, max_rotations:int) -> np.ndarray:
-
+    n = len(datapoints)
     L_norm = calc_L_norm(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(L_norm, eps, max_rotations)
-    n = eigenvalues.shape[0]
+    assert(n == eigenvalues.shape[0])
     assert(n >= 2) # eigengap is undefined for n in {0,1}
     half_n = int(np.floor(n/2))
     eigenvalues_i_plus_1 = eigenvalues[1:]
     eigenvalues_i = eigenvalues[:-1]
-    delta = np.abs(eigenvalues_i - eigenvalues_i_plus_1)
-
-    delta_max = -1 * np.inf
+    delta_abs = np.abs(eigenvalues_i - eigenvalues_i_plus_1)
+    delta_max = np.max(delta_abs[:half_n])
     for i in range(half_n):
-        if delta_max < 
-
+        if delta_abs[i] == delta_max:
+            return i
+    raise Exception("We were supposed to return")
 
 
 if __name__ == "__main__":
