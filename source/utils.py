@@ -21,6 +21,9 @@ def is_1d_vector(x: np.ndarray) -> bool:
 def is_square_matrix(A: np.ndarray) -> bool:
     return (A.ndim == 2) and (A.shape[0] == A.shape[1])
 
+def is_diagonal_matrix(A: np.ndarray) -> bool:
+    return (np.count_nonzero(x - np.diag(np.diagonal(x))) == 0)
+
 def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     # returns weighted adjacency matrix
     assert(datapoints.ndim == 1)
@@ -93,6 +96,24 @@ def calc_A_tag(A: np.ndarray) -> np.ndarray:
     P_T = P.transpose()
     A_tag = P_T @ A @ P
     return A_tag
+
+def jacobi_algorithm(A_original: np.ndarray, eps:int, max_rotations:int) -> Tuple[np.ndarray, np.ndarray]:
+    assert(is_square_matrix(A_original))
+    V = identity_matrix_like(A_original)
+    A = np.array(A_original)
+    rotations = 0
+    while True:
+        P = calc_P(A)
+        rotations += 1
+        V = V @ P
+        A_tag = V.transpose() @ A_original @ V
+        if (calc_dist_between_offs(A,A_tag) <= eps) or (rotations == max_rotations):
+            break
+        A = A_tag
+    eigenvalues = A_tag.diagonal()
+    eigenvectors = V
+    return eigenvalues, eigenvectors
+
 
 
 if __name__ == "__main__":
