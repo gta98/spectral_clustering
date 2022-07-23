@@ -116,7 +116,7 @@ def jacobi_algorithm(A_original: np.ndarray, eps:int, max_rotations:int) -> Tupl
     eigenvectors = V
     return eigenvalues, eigenvectors
 
-def calc_eigengap(datapoints: np.ndarray, eps:int, max_rotations:int) -> np.ndarray:
+def calc_k(datapoints: np.ndarray, eps:int, max_rotations:int) -> np.ndarray:
     n = len(datapoints)
     L_norm = calc_L_norm(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(L_norm, eps, max_rotations)
