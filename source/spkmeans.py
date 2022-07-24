@@ -41,6 +41,9 @@ def main():
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
 
+def full_calc_wam(datapoints: np.ndarray) -> np.ndarray:
+
+
 def get_data_from_cmd():
 
     def _get_raw_cmd_args():
