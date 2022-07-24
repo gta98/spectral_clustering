@@ -8,7 +8,58 @@ import pandas as pd
 import mykmeanssp
 from definitions import *
 
+def sign(num: int) -> int:
+    if num == 0:
+        return 1
+    else:
+        return np.sign(num)
 
+def can_convert_to_list_of_list(A: np.ndarray) -> bool:
+    if type(A) != np.ndarray:
+        return False
+    if A.ndim != 2:
+        return False
+    return True
+
+def can_convert_to__np_matrix(A: List[List[float]]):
+    if type(A) != list:
+        return False
+    if any([(type(x)!=list) or (len(x)!=len(A[0])) for x in A]):
+        return False
+    return True
+
+def convert__np_matrix__to__list_of_lists(A: np.ndarray) -> List[List[float]]:
+    if not can_convert_to_list_of_list(A):
+        raise ValueError("A must be a 2d matrix")
+    return [list(x) for x in list(A)]
+
+def convert__list_of_lists__to__np_matrix(A: List[List[float]]) -> np.ndarray:
+    if not can_convert_to__np_matrix(A):
+        raise ValueError("Cannot convert A to np matrix")
+    B = np.array(A)
+    assert(B.ndim == 2)
+    return B
+
+def wrap__ndarray_to_list_of_lists(func):
+    def inner(*args, **kwargs):
+        if np.ndarray in [type(x) for x in args]+[type(x) for x in kwargs.values()]:
+            # working in numpy mode
+            return func(*args, **kwargs)
+        _args = [(convert__list_of_lists__to__np_matrix(v) if can_convert_to__np_matrix(v) else v) \
+                for v in args]
+        _kwargs = {k: (convert__list_of_lists__to__np_matrix(v) if can_convert_to__np_matrix(v) else v) \
+                for k,v in kwargs.items()}
+        retval = func(*_args, **_kwargs)
+        if can_convert_to_list_of_list(retval):
+            return convert__np_matrix__to__list_of_lists(retval)
+        elif (type(retval) is tuple) and all([type(x) is np.ndarray for x in retval]):
+            return tuple([convert__np_matrix__to__list_of_lists(x) for x in retval])
+        else:
+            return retval
+    return inner
+            
+
+@wrap__ndarray_to_list_of_lists
 def transpose_1d(x: np.ndarray) -> np.ndarray:
     if len(x.shape) == 1:
         return x.reshape((x.shape[0],1))
@@ -19,23 +70,28 @@ def transpose_1d(x: np.ndarray) -> np.ndarray:
         raise ValueError("Unsupported!")
 
 
+@wrap__ndarray_to_list_of_lists
 def identity_matrix_like(A: np.ndarray) -> np.ndarray:
     assert(A.ndim == 2)
     return np.diag(np.ones(np.min(A.shape)))
 
 
+@wrap__ndarray_to_list_of_lists
 def is_1d_vector(x: np.ndarray) -> bool:
     return (x.ndim == 1)
 
 
+@wrap__ndarray_to_list_of_lists
 def is_square_matrix(A: np.ndarray) -> bool:
     return (A.ndim == 2) and (A.shape[0] == A.shape[1])
 
 
+@wrap__ndarray_to_list_of_lists
 def is_diagonal_matrix(A: np.ndarray) -> bool:
-    return (np.count_nonzero(x - np.diag(np.diagonal(x))) == 0)
+    return (np.count_nonzero(A - np.diag(np.diagonal(A))) == 0)
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     # returns weighted adjacency matrix
     assert(datapoints.ndim == 2)
@@ -49,12 +105,14 @@ def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     return W
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_ddg(W: np.ndarray) -> np.ndarray:
     W_sum_along_horizontal_axis = W.sum(axis=1)
     D = np.diag(W_sum_along_horizontal_axis)
     return D
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
     D_pow_minus_half = D**(-0.5)
     DWD = (D_pow_minus_half @ W @ D_pow_minus_half)
@@ -63,13 +121,7 @@ def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
     return L_norm
 
 
-def sign(num: int) -> int:
-    if num == 0:
-        return 1
-    else:
-        return np.sign(num)
-
-
+@wrap__ndarray_to_list_of_lists
 def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     assert(len(A.ndim)==2)
     P = identity_matrix_like(A)
@@ -83,10 +135,12 @@ def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     return P
 
 
+@wrap__ndarray_to_list_of_lists
 def get_indices_of_max_element(A: np.ndarray) -> Tuple:
     return np.unravel_index(np.argmax(A, axis=None), A.shape)
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_P(A: np.ndarray) -> np.ndarray:
     assert(len(A.ndim)==2)
     A_abs = np.abs(A)
@@ -96,6 +150,7 @@ def calc_P(A: np.ndarray) -> np.ndarray:
     return P
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_off_squared(A: np.ndarray) -> np.ndarray:
     assert(is_square_matrix(A))
     A_without_diagonal = A - np.diag(A.diagonal())
@@ -104,6 +159,7 @@ def calc_off_squared(A: np.ndarray) -> np.ndarray:
     return A_without_diagonal__square__sum
 
 
+@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     assert(is_square_matrix(A_original))
     V = identity_matrix_like(A_original)
@@ -127,6 +183,7 @@ def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     return eigenvalues, eigenvectors
 
 
+@wrap__ndarray_to_list_of_lists
 def sort_cols_by_vector_desc(A: np.ndarray, v: np.array) -> Tuple[np.ndarray, np.array]:
     sorting_indices = np.argsort(v)[::-1]
     v_sorted = v[sorting_indices]
@@ -134,6 +191,7 @@ def sort_cols_by_vector_desc(A: np.ndarray, v: np.array) -> Tuple[np.ndarray, np
     return A_sorted, v_sorted
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_eigengap(eigenvalues_sort_dec: np.ndarray) -> np.ndarray:
     eigenvalues_i_plus_1 = eigenvalues_sort_dec[1:]
     eigenvalues_i = eigenvalues_sort_dec[:-1]
@@ -141,15 +199,16 @@ def calc_eigengap(eigenvalues_sort_dec: np.ndarray) -> np.ndarray:
     return delta_abs
 
 
+@wrap__ndarray_to_list_of_lists
 def calc_k(datapoints: np.ndarray) -> np.ndarray:
     n = len(datapoints)
     L_norm = calc_L_norm(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(L_norm)
-    eigenvectors_sort_dec, eigenvalues_sort_dec = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
-    assert(n == eigenvalues_sort_dec.shape[0])
+    eigenvectors_sort_desc, eigenvalues_sort_desc = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
+    assert(n == eigenvalues_sort_desc.shape[0])
     assert(n >= 2) # eigengap is undefined for n in {0,1}
     half_n = int(np.floor(n/2))
-    delta_abs = calc_eigengap(eigenvalues_sort_dec)
+    delta_abs = calc_eigengap(eigenvalues_sort_desc)
     delta_max = np.max(delta_abs[:half_n])
     for i in range(half_n):
         if delta_abs[i] == delta_max:

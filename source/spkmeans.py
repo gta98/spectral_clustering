@@ -10,9 +10,22 @@ from definitions import *
 
 
 def main():
+
     np.random.seed(0)
     k, goal, datapoints = get_data_from_cmd()
+
+    if Goal[goal].value <= Goal.WAM.value:
+        W = calc_wam(datapoints)
+    if Goal[goal].value <= Goal.DDG.value:
+        D = calc_ddg(W)
+    if Goal[goal].value <= Goal.LNORM.value:
+        L_norm = calc_L_norm(W, D)
+    
+    
+
     if   goal == 'spk':
+        W = calc_wam(datapoints)
+        L_norm = calc_L_norm(W)
         results = calc_kmeanspp(k, datapoints)
     elif goal == 'wam':
         results = calc_wam(datapoints)
