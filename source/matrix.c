@@ -1,5 +1,5 @@
 
-#include "linalg.h"
+#include "matrix.h"
 
 
 /* initialize mat(h,w) with zeros and return */
