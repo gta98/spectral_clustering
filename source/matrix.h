@@ -1,7 +1,7 @@
 #ifndef H_MATRIX
 #define H_MATRIX
 
-#include "types.h"
+#include "common_types.h"
 
 typedef struct {
     real*       __data;
