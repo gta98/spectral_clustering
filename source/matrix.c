@@ -2,7 +2,7 @@
 #include "matrix.h"
 
 
-/* initialize mat(h,w) with zeros and return */
+/* initialize mat(h,w) with junk and return */
 mat_t* mat_init(const uint h, const uint w) {
     mat_t* mat;
     int i, mat_size;
@@ -13,6 +13,23 @@ mat_t* mat_init(const uint h, const uint w) {
     mat->__swap_axes = false;
     mat->h = h;
     mat->w = w;
+}
+
+/* initialize mat(h,w) and fill with value */
+mat_t* mat_init_full(const uint h, const uint w, const real value) {
+    mat_t* mat = mat_init(h,w);
+    if (!mat) return NULL;
+    mat_mul_scalar(mat, mat, 0);
+    mat_add_scalar(mat, mat, value);
+}
+
+/* initialize mat(n,n) with zeros, fill diagonal with 1 */
+mat_t* mat_init_identity(const uint n) {
+    int i;
+    mat_t* mat = mat_init_full(n,n,0);
+    if (!mat) return NULL;
+    for (i=0; i<n; i++) mat_set(mat,i,i,1);
+    return mat;
 }
 
 void mat_free(mat_t** mat) {
@@ -148,6 +165,11 @@ void mat_pow_scalar(mat_t* dst, const mat_t* mat, const real alpha) {
     __mat_cellwise_scalar(dst, mat, alpha, real_pow);
 }
 
+/* dst = alpha ^ mat */
+void mat_scalar_pow(mat_t* dst, const mat_t* mat, const real alpha) {
+    __mat_cellwise_scalar(dst, mat, alpha, real_pow_rev);
+}
+
 /* dst = dst @ src */
 void mat_mul(mat_t* dst, const mat_t* mat_lhs, const mat_t* mat_rhs) {
     uint i, j, k;
@@ -171,4 +193,17 @@ mat_t* matmul(const mat_t* mat_lhs, const mat_t* mat_rhs) {
     dst = mat_init(mat_lhs->h, mat_rhs->w);
     mat_mul(dst, mat_lhs, mat_rhs);
     return dst;
+}
+
+void mat_print(const mat_t* mat) {
+    int i, j;
+    assert(mat);
+    assert((mat->w > 0) || ((mat->w == 0) && (mat->h==0)));
+    for (i=0; i<mat->h; i++) {
+        for (j=0; j<mat->w; j++) {
+            printf("%.4f", mat_get(mat, i, j));
+            if ((j+1) < mat->w) printf(",");
+        }
+        printf("\n");
+    }
 }

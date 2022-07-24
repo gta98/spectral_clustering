@@ -1,6 +1,7 @@
 #ifndef H_MATRIX
 #define H_MATRIX
 
+#include "common_utils.h"
 #include "common_types.h"
 
 typedef struct {
@@ -10,9 +11,16 @@ typedef struct {
     uint        w;
 } mat_t;
 
-/* initialize mat(h,w) with zeros and return */
+/* initialize mat(h,w) with junk and return */
 mat_t* mat_init(const uint h, const uint w);
 
+/* initialize mat(h,w) and fill with value */
+mat_t* mat_init_full(const uint h, const uint w, const real value);
+
+/* initialize mat(n,n) with zeros, fill diagonal with 1 */
+mat_t* mat_init_identity(const uint n);
+
+/* free mat memory */
 void mat_free(mat_t** mat);
 
 /* transpose mat */
@@ -65,6 +73,9 @@ void mat_mul(mat_t* dst, const mat_t* mat_lhs, const mat_t* mat_rhs);
 
 /* returns mat_lhs @ mat_rhs */
 mat_t* matmul(const mat_t* mat_lhs, const mat_t* mat_rhs);
+
+/* prints mat to stdout */
+void mat_print(const mat_t* mat);
 
 
 #endif
