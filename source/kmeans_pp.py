@@ -7,7 +7,7 @@ import mykmeanssp
 from definitions import *
 
 
-def main_kmeanspp(k, datapoints):
+def calc_kmeanspp(k, datapoints):
     np.random.seed(0)
     fit_params = extract_fit_params(k, KMEANS_MAX_ITER, KMEANS_EPSILON, datapoints)
     results = KmeansAlgorithm(*fit_params)
