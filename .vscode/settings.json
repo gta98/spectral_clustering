@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "stdint.h": "c",
+        "spkmeans.h": "c",
+        "matrix.h": "c",
+        "common_utils.h": "c",
+        "common_types.h": "c",
+        "common.h": "c"
+    }
+}
