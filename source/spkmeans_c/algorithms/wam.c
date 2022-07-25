@@ -1,3 +1,4 @@
+#include "common_includes.h"
 #include "wam.h"
 
 mat_t* calc_wam(const mat_t* data) {

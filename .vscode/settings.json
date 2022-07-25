@@ -7,6 +7,8 @@
         "common_types.h": "c",
         "common.h": "c",
         "matrix_reader.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "lnorm.h": "c",
+        "common_includes.h": "c"
     }
 }
