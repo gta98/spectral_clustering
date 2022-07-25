@@ -1,4 +1,5 @@
 #include "common_utils.h"
+#include "common_includes.h"
 
 real real_add(real lhs, real rhs) { return lhs + rhs; }
 real real_sub(real lhs, real rhs) { return lhs - rhs; }
@@ -120,4 +121,16 @@ void swap(real* x, real* y) {
     z = *x;
     *x = *y;
     *y = z;
+}
+
+bool streq_insensitive(const char* s1, const char* s2) {
+    uint i, n;
+    n = strlen(s1);
+    if (n != strlen(s2)) return false;
+    for (i=0; i<n; i++) {
+        if (tolower(s1[i]) != tolower(s2[i])) {
+            return false;
+        }
+    }
+    return true;
 }

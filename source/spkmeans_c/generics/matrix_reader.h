@@ -4,6 +4,6 @@
 #include "common.h"
 #include "matrix.h"
 
-mat_t* read_data(char* path_to_input);
+status_t read_data(mat_t** dst, char* path_to_input);
 
 #endif

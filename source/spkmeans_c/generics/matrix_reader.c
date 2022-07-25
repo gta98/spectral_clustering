@@ -95,26 +95,28 @@ int get_number_of_lines(FILE* fh) {
     return lines;
 }
 
-mat_t* read_data(char* path_to_input) {
+status_t read_data(mat_t** dst, char* path_to_input) {
     int i, j, h, w;
     char* line;
     FILE* fh;
     mat_t* x;
 
+    *dst = NULL;
+
     fh = fopen(path_to_input, "rb");
-    if (!fh) return NULL;
+    if (!fh) return ERROR_FOPEN;
 
     /* we assume that every line gets the same number of commas */
     w = get_number_of_dimensions(fh);
     h = get_number_of_lines(fh);
     if ((w <= 0) || (h <= 0)) {
         fclose(fh);
-        return NULL;;
+        return ERROR_FORMAT;;
     }
 
 
     x = mat_init(h, w);
-    if (!x) return NULL;
+    if (!x) return ERROR_MALLOC;
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
             line = FILE_get_next_num(fh);
@@ -123,6 +125,9 @@ mat_t* read_data(char* path_to_input) {
         }
     }
 
+    /* FIXME - more rigid format validation - verify that all lines have dimension w */
+
     fclose(fh);
-    return x;
+    *dst = x;
+    return SUCCESS;
 }

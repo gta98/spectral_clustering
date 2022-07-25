@@ -20,4 +20,6 @@ void swap(real* x, real* y);
 uint* argsort(const real* v, const uint n);
 uint* argsort_desc(const real* v, const uint n);
 
+bool streq_insensitive(const char* s1, const char* s2);
+
 #endif

@@ -78,6 +78,8 @@ mat_t* matmul(const mat_t* mat_lhs, const mat_t* mat_rhs);
 /* prints mat to stdout */
 void mat_print(const mat_t* mat);
 
+void mat_print_diagonal(const mat_t* mat);
+
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices);
 
 
