@@ -15,6 +15,14 @@ typedef struct Point {
     int cluster;
 } point_t;
 
+typedef enum Status {
+    SUCCESS,
+    ERROR,
+    ERROR_MALLOC,
+    ERROR_FOPEN,
+    ERROR_FORMAT
+} status_t;
+
 #define MAX_DATA_POINTS         1000
 #define MAX_DATA_DIMENSIONS     10
 

@@ -73,6 +73,7 @@ uint* argsort(const real* v, const uint n) {
     for (i=0; i<n; i++) {
         indices_uint[i] = indices[i].index;
     }
+    free(indices);
     return indices_uint;
 }
 
@@ -85,6 +86,33 @@ uint* argsort_desc(const real* v, const uint n) {
         swap(&(indices[i]), &(indices[n-i]));
     }
     return indices;
+}
+
+
+/* inspired by https://www.geeksforgeeks.org/reorder-a-array-according-to-given-indexes/ */
+int reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
+    /*
+    for (int i = 0; i < n; i++) {
+        // While index[i] and arr[i] are not fixed
+        while (index_arr[i] != i) {
+            swap(arr[i], arr[index_arr[i]]);
+            swap(index_arr[i], index_arr[index_arr[i]]);
+        }
+    }
+    */
+    uint i;
+    uint* indices_copy;
+    indices_copy = malloc(sizeof(uint)*n);
+    if (!indices_copy) return STATUS_ERROR_MALLOC;
+    for (i=0; i<n; i++) indices_copy[i] = indices[i];
+    for (i=0; i<n; i++) {
+        while (indices[i] != i) {
+            swap(&(v[i]), &(v[indices[i]]));
+            swap(&(indices[i]), &(indices[indices[i]]));
+        }
+    }
+    free(indices_copy);
+    return STATUS_SUCCESS;
 }
 
 void swap(real* x, real* y) {

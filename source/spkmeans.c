@@ -267,6 +267,31 @@ bool is_jacobi_convergence(mat_t* A, mat_t* A_tag, uint rotations) {
     }
 }
 
+status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
+    real* eigenvalues;
+    status_t status;
+    uint* sorting_indices;
+    uint n, i;
+    assert(A);
+    assert(v);
+    assert(A->h == A->w);
+    assert(v->h == v->w);
+    assert(A->h == v->h);
+    
+    n = v->h;
+    eigenvalues = malloc(sizeof(real)*n);
+    if (!eigenvalues) return ERROR_MALLOC;
+    for (i=0; i<n; i++) eigenvalues[i] = mat_get(v,i,i);
+    sorting_indices = argsort_desc(eigenvalues, n);
+    free(eigenvalues);
+
+    status = sort_cols_by_vector(A, sorting_indices);
+    if (status != SUCCESS) return status;
+    status = sort_cols_by_vector(v, sorting_indices);
+    if (status != SUCCESS) return status;
+    return SUCCESS;
+}
+
 
 
 mat_t* calc_P(mat_t* A) {

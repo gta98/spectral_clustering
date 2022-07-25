@@ -13,6 +13,7 @@ mat_t* mat_init(const uint h, const uint w) {
     mat->__swap_axes = false;
     mat->h = h;
     mat->w = w;
+    return mat;
 }
 
 /* initialize mat(h,w) and fill with value */
@@ -21,6 +22,7 @@ mat_t* mat_init_full(const uint h, const uint w, const real value) {
     if (!mat) return NULL;
     mat_mul_scalar(mat, mat, 0);
     mat_add_scalar(mat, mat, value);
+    return mat;
 }
 
 /* initialize mat(n,n) with zeros, fill diagonal with 1 */
@@ -195,6 +197,33 @@ mat_t* matmul(const mat_t* mat_lhs, const mat_t* mat_rhs) {
     return dst;
 }
 
+void mat_swap_cols(mat_t* A, const uint col_1, const uint col_2) {
+    uint row;
+    real tmp;
+    for (row=0; row<A->h; row++) {
+        tmp = mat_get(A, row, col_1);
+        mat_set(A, row, col_1, mat_get(A, row, col_2));
+        mat_set(A, row, col_2, tmp);
+    }
+}
+
+status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices) {
+    uint i;
+    uint n;
+    uint* indices_copy;
+    n = v->w;
+    indices_copy = malloc(sizeof(uint)*n);
+    if (!indices_copy) return ERROR_MALLOC;
+    for (i=0; i<n; i++) {
+        while (indices_copy[i] != i) {
+            mat_swap_cols(v, i, indices_copy[i]);
+            swap(&(indices_copy[i]), &(indices_copy[indices_copy[i]]));
+        }
+    }
+    free(indices_copy);
+    return SUCCESS;
+}
+
 void mat_print(const mat_t* mat) {
     int i, j;
     assert(mat);
@@ -206,4 +235,16 @@ void mat_print(const mat_t* mat) {
         }
         printf("\n");
     }
+}
+
+void mat_print_diagonal(const mat_t* mat) {
+    int i, n;
+    assert(mat);
+    assert((mat->w > 0) || ((mat->w == 0) && (mat->h==0)));
+    n = min(mat->h, mat->w);
+    for (i=0; i<n; i++) {
+        printf("%.4f", mat_get(mat, i, i));
+        if ((i+1) < n) printf(",");
+    }
+    printf("\n");
 }
