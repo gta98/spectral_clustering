@@ -6,6 +6,7 @@
 #include <math.h>
 #include "common_utils.h"
 #include "common_types.h"
+#include "matrix.h"
 
 
 #endif

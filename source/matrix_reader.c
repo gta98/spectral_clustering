@@ -1,4 +1,4 @@
-#include "file_utils.h"
+#include "matrix_reader.h"
 
 int FILE_locate(FILE* fh, char needle) {
     char c;
@@ -95,28 +95,28 @@ int get_number_of_lines(FILE* fh) {
     return lines;
 }
 
-int read_data(char* path_to_input,
-        mat_t** x, int* line_count, int* dims_count) {
-    int i, j;
+mat_t* read_data(char* path_to_input) {
+    int i, j, h, w;
     char* line;
     FILE* fh;
+    mat_t* x;
 
     fh = fopen(path_to_input, "rb");
-    if (!fh) return STATUS_ERROR_FOPEN;
+    if (!fh) return NULL;
 
     /* we assume that every line gets the same number of commas */
-    *dims_count = get_number_of_dimensions(fh);
-    *line_count = get_number_of_lines(fh);
-    if ((*dims_count <= 0) || (*line_count <= 0)) {
+    w = get_number_of_dimensions(fh);
+    h = get_number_of_lines(fh);
+    if ((w <= 0) || (h <= 0)) {
         fclose(fh);
-        return STATUS_ERROR_FORMAT;
+        return NULL;;
     }
 
 
-    x = mat_init(*line_count, *dims_count);
-    if (!*x) return STATUS_ERROR_MALLOC;
-    for (i = 0; i < *line_count; i++) {
-        for (j = 0; j < *dims_count; j++) {
+    x = mat_init(h, w);
+    if (!x) return NULL;
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
             line = FILE_get_next_num(fh);
             mat_set(x, i, j, atof(line));
             free(line);
@@ -124,5 +124,5 @@ int read_data(char* path_to_input,
     }
 
     fclose(fh);
-    return STATUS_SUCCESS;
+    return x;
 }

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <Float.h>
+#include <float.h>
 
 typedef float           real;
 typedef uint32_t        uint;
