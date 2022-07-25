@@ -17,6 +17,9 @@ mat_t* mat_init(const uint h, const uint w);
 /* initialize mat(h,w) and fill with value */
 mat_t* mat_init_full(const uint h, const uint w, const real value);
 
+/* return a copy of mat */
+mat_t* mat_init_like(mat_t* mat);
+
 /* initialize mat(n,n) with zeros, fill diagonal with 1 */
 mat_t* mat_init_identity(const uint n);
 
@@ -34,9 +37,6 @@ void mat_set(mat_t* mat, uint i, uint j, const real new_value);
 
 /* return a copy of mat */
 void mat_copy_to(mat_t* dst, mat_t* src);
-
-/* return a copy of mat */
-mat_t* mat_copy(mat_t* mat);
 
 /* dst = mat_1 + mat_2 */
 void mat_add_cellwise(mat_t* dst, const mat_t* mat_1, const mat_t* mat_2);

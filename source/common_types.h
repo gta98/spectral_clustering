@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <Float.h>
 
 typedef float           real;
 typedef uint32_t        uint;
@@ -31,6 +33,15 @@ typedef struct Point {
 #define RESULT_FOPEN_ERROR   1
 
 #define EPSILON ((double)0.001)
+
+#define JACOBI_MAX_ROTATIONS ((uint)100)
+#define JACOBI_EPSILON       ((real)1e-5)
+
+/* FIXME - what is the actual value of DBL_MIN? */
+#define INFINITY __DBL_MAX__
+#define INF INFINITY
+#define NEGATIVE_INFINITY __DBL_MIN__
+#define NEG_INF NEGATIVE_INFINITY
 
 
 #endif
