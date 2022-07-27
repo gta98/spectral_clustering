@@ -19,13 +19,6 @@ int main(int argc, char* argv[]) {
     if (status != SUCCESS) {
         if (data) free(data);
         switch(status) {
-            case SUCCESS: {
-                break;
-            }
-            case ERROR: {
-                assertd(false);
-                return get_code_print_msg(1, MSG_ERR_GENERIC);
-            }
             case ERROR_FOPEN: {
                 return get_code_print_msg(1, MSG_ERR_INVALID_INPUT);
             }
@@ -34,6 +27,9 @@ int main(int argc, char* argv[]) {
             }
             case ERROR_FORMAT: {
                 return get_code_print_msg(1, MSG_ERR_GENERIC);
+            }
+            default: {
+                break;
             }
         }
         assertd(false); /* this is not supposed to happen */
