@@ -114,7 +114,6 @@ status_t read_data(mat_t** dst, char* path_to_input) {
         return ERROR_FORMAT;;
     }
 
-
     x = mat_init(h, w);
     if (!x) return ERROR_MALLOC;
     for (i = 0; i < h; i++) {

@@ -1,4 +1,2 @@
-./scripts/build_c
-cd debug
-export PYTHONMALLOC=malloc
-valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=valgrind-python.supp python3 -E -tt ./kmeans_pp.py 3 100 0.01 input_1_db_1.txt input_1_db_2.txt
+./comp.sh
+valgrind --show-leak-kinds=all --leak-check=yes ./output/spkmeans jacobi resources/test_valgrind/square.csv
