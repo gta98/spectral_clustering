@@ -7,8 +7,13 @@ mat_t* mat_init(const uint h, const uint w) {
     mat_t* mat;
     int i, mat_size;
     mat_size = h*w;
-    mat = malloc(sizeof(real)*mat_size);
+    mat = malloc(sizeof(mat_t));
     if (!mat) return NULL;
+    mat->__data = malloc(sizeof(real)*mat_size);
+    if (!mat->__data) {
+        free(mat);
+        return NULL;
+    }
     for (i=0; i<mat_size; mat->__data[i]=0, i++);
     mat->__swap_axes = false;
     mat->h = h;
