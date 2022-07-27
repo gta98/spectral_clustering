@@ -87,20 +87,6 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
 
 /* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */
 
-real calc_off_squared(mat_t* A) {
-    uint i, j, n;
-    real off;
-    assert((A->h) == (A->w));
-    n = A->h;
-    off = 0;
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
-            if (i!=j)
-                off += pow(mat_get(A,i,j),2);
-        }
-    }
-    return off;
-}
 
 real calc_dist(mat_t* A, mat_t* A_tag) {
     return calc_off_squared(A) - calc_off_squared(A_tag);

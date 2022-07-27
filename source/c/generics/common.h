@@ -1,12 +1,10 @@
-#ifndef H_COMMON_INCLUDES
-#define H_COMMON_INCLUDES
+#ifndef H_COMMON
+#define H_COMMON
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "common_utils.h"
-#include "common_types.h"
-#include "matrix.h"
+#include "generics/common_includes.h"
+#include "generics/common_utils.h"
+#include "generics/common_types.h"
+#include "generics/matrix.h"
 
 
 #endif

@@ -17,20 +17,12 @@ status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
     for (i=0; i<n; i++) eigenvalues[i] = mat_get(v,i,i);
     sorting_indices = argsort_desc(eigenvalues, n);
     free(eigenvalues);
-
-    status = sort_cols_by_vector(A, sorting_indices);
+    
+    status = reorder_mat_cols_by_indices(A, sorting_indices);
     if (status != SUCCESS) return status;
-    status = sort_cols_by_vector(v, sorting_indices);
+    status = reorder_mat_cols_by_indices(v, sorting_indices);
     if (status != SUCCESS) return status;
     return SUCCESS;
-}
-
-bool is_diagonal(mat_t* A) {
-    return calc_off_squared(A) == 0;
-}
-
-bool is_square(mat_t* A) {
-    return A->w == A->h;
 }
 
 uint calc_k(mat_t* eigenvalues) {

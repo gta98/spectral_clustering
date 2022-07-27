@@ -1,9 +1,9 @@
 #ifndef H_MATRIX
 #define H_MATRIX
 
-#include "common_utils.h"
-#include "common_types.h"
-#include "common_includes.h"
+#include "generics/common_utils.h"
+#include "generics/common_types.h"
+#include "generics/common_includes.h"
 
 typedef struct {
     real*       __data;
@@ -81,6 +81,9 @@ void mat_print(const mat_t* mat);
 void mat_print_diagonal(const mat_t* mat);
 
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices);
+real calc_off_squared(mat_t* A);
+bool is_diagonal(mat_t* A);
+bool is_square(mat_t* A);
 
 
 #endif

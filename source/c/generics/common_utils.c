@@ -1,5 +1,4 @@
-#include "common_utils.h"
-#include "common_includes.h"
+#include "generics/common_utils.h"
 
 real real_add(real lhs, real rhs) { return lhs + rhs; }
 real real_sub(real lhs, real rhs) { return lhs - rhs; }
@@ -14,7 +13,7 @@ real real_pow_rev(real lhs, real rhs) { return pow(rhs, lhs); }
 
 real real_abs(real x) { return (x>=0) ? x : -x; }
 
-int sign(real x) {
+real real_sign(real x) {
     return (x >= 0) ? 1 : -1;
 }
 
@@ -89,9 +88,15 @@ uint* argsort_desc(const real* v, const uint n) {
     return indices;
 }
 
+void swap(real* x, real* y) {
+    real z;
+    z = *x;
+    *x = *y;
+    *y = z;
+}
 
 /* inspired by https://www.geeksforgeeks.org/reorder-a-array-according-to-given-indexes/ */
-int reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
+status_t reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
     /*
     for (int i = 0; i < n; i++) {
         // While index[i] and arr[i] are not fixed
@@ -104,7 +109,7 @@ int reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
     uint i;
     uint* indices_copy;
     indices_copy = malloc(sizeof(uint)*n);
-    if (!indices_copy) return STATUS_ERROR_MALLOC;
+    if (!indices_copy) return ERROR_MALLOC;
     for (i=0; i<n; i++) indices_copy[i] = indices[i];
     for (i=0; i<n; i++) {
         while (indices[i] != i) {
@@ -113,14 +118,7 @@ int reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
         }
     }
     free(indices_copy);
-    return STATUS_SUCCESS;
-}
-
-void swap(real* x, real* y) {
-    real z;
-    z = *x;
-    *x = *y;
-    *y = z;
+    return SUCCESS;
 }
 
 bool streq_insensitive(const char* s1, const char* s2) {

@@ -2,11 +2,13 @@
 # Script to compile and execute a c program
 
 PATH_SRC="./source/c"
+PATH_OUT="./output"
 
-gcc -ansi -Wall -Wextra -Werror -pedantic-errors \
+mkdir -p $PATH_OUT
+
+##-Werror -pedantic-errors \
+gcc -ansi -Wall -Wextra \
     -I $PATH_SRC \
-    -I $PATH_SRC/generics \
-    -I $PATH_SRC/algorithms \
     $PATH_SRC/spkmeans.c \
     $PATH_SRC/generics/common_utils.c \
     $PATH_SRC/generics/matrix.c \
@@ -17,4 +19,4 @@ gcc -ansi -Wall -Wextra -Werror -pedantic-errors \
     $PATH_SRC/algorithms/jacobi.c \
     $PATH_SRC/algorithms/eigengap.c \
     -lm \
-    -o spkmeans
+    -o $PATH_OUT/spkmeans

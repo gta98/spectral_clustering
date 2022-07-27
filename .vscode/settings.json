@@ -9,6 +9,10 @@
         "matrix_reader.h": "c",
         "type_traits": "c",
         "lnorm.h": "c",
-        "common_includes.h": "c"
+        "common_includes.h": "c",
+        "stdlib.h": "c",
+        "float.h": "c",
+        "eigengap.h": "c",
+        "limits.h": "c"
     }
 }

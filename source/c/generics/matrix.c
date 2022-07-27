@@ -224,6 +224,29 @@ status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices) {
     return SUCCESS;
 }
 
+real calc_off_squared(mat_t* A) {
+    uint i, j, n;
+    real off;
+    assert((A->h) == (A->w));
+    n = A->h;
+    off = 0;
+    for (i=0; i<n; i++) {
+        for (j=0; j<n; j++) {
+            if (i!=j)
+                off += pow(mat_get(A,i,j),2);
+        }
+    }
+    return off;
+}
+
+bool is_diagonal(mat_t* A) {
+    return calc_off_squared(A) == 0;
+}
+
+bool is_square(mat_t* A) {
+    return A->w == A->h;
+}
+
 void mat_print(const mat_t* mat) {
     int i, j;
     assert(mat);
@@ -241,7 +264,7 @@ void mat_print_diagonal(const mat_t* mat) {
     int i, n;
     assert(mat);
     assert((mat->w > 0) || ((mat->w == 0) && (mat->h==0)));
-    n = min(mat->h, mat->w);
+    n = (mat->h > mat->w) ? mat->h : mat->w; /* min(h,w) */
     for (i=0; i<n; i++) {
         printf("%.4f", mat_get(mat, i, i));
         if ((i+1) < n) printf(",");
