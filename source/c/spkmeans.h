@@ -21,4 +21,17 @@ typedef enum Goal {
 const char* GOALS[] = {"spk", "wam", "ddg", "lnorm", "jacobi"};
 const uint GOALS_COUNT = 5;
 
+mat_t* calc_full_wam(mat_t* data);
+mat_t* calc_full_ddg(mat_t* data);
+mat_t* calc_full_lnorm(mat_t* data);
+void   calc_full_jacobi(mat_t* data, mat_t** eigenvectors, mat_t** eigenvalues);
+
+status_t print_wam(mat_t* data);
+status_t print_ddg(mat_t* data);
+status_t print_lnorm(mat_t* data);
+status_t print_jacobi(mat_t* data);
+
+goal_t get_selected_routine(const char* goal_str);
+int get_code_print_msg(int code, const char* msg);
+
 #endif
