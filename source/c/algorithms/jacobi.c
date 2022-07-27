@@ -85,7 +85,7 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
     mat_transpose(V);
 }
 
-// TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k
+/* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */
 
 real calc_off_squared(mat_t* A) {
     uint i, j, n;
