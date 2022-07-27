@@ -11,4 +11,6 @@
 #include <string.h>
 #include <assert.h>
 
+#include "common_debug.h"
+
 #endif

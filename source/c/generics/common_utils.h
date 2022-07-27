@@ -17,9 +17,12 @@ int isanum(char* s);
 int sign(real x);
 
 void swap(real* x, real* y);
+void swap_uint(uint* x, uint* y);
 
 uint* argsort(const real* v, const uint n);
 uint* argsort_desc(const real* v, const uint n);
+
+char lowercase(const char c);
 
 bool streq_insensitive(const char* s1, const char* s2);
 

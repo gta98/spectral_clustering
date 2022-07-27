@@ -1,11 +1,11 @@
 #include "lnorm.h"
 
-mat_t* calc_lnorm(const mat_t* W, const mat_t* D_inv_sqrt) {
+mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt) {
     mat_t* L;
     uint i, n;
     n = W->h;
-    assert((n == W->h) && (n == W->w));
-    assert((n == D_inv_sqrt->h) && (n == D_inv_sqrt->w));
+    assertd((n == W->h) && (n == W->w));
+    assertd((n == D_inv_sqrt->h) && (n == D_inv_sqrt->w));
     L = mat_init(n,n);
     if (!L) return NULL;
     mat_mul(L, W, D_inv_sqrt);

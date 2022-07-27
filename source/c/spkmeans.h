@@ -1,17 +1,6 @@
 #ifndef H_SPKMEANS
 #define H_SPKMEANS
 
-typedef enum Goal {
-    SPK,
-    WAM,
-    DDG,
-    LNORM,
-    JACOBI,
-    INVALID_GOAL
-} goal_t;
-const char* GOALS[] = {"spk", "wam", "ddg", "lnorm", "jacobi"};
-const int GOALS_COUNT = 5;
-
 #include "generics/common.h"
 #include "generics/matrix.h"
 #include "generics/matrix_reader.h"
@@ -21,6 +10,15 @@ const int GOALS_COUNT = 5;
 #include "algorithms/lnorm.h"
 #include "algorithms/wam.h"
 
-mat_t* calc_wam(const mat_t* data);
+typedef enum Goal {
+    SPK,
+    WAM,
+    DDG,
+    LNORM,
+    JACOBI,
+    INVALID_GOAL
+} goal_t;
+const char* GOALS[] = {"spk", "wam", "ddg", "lnorm", "jacobi"};
+const uint GOALS_COUNT = 5;
 
 #endif

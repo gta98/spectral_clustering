@@ -1,12 +1,12 @@
 #include "spkmeans.h"
 
-mat_t* calc_full_wam(const mat_t* data) {
+mat_t* calc_full_wam(mat_t* data) {
     mat_t* W;
     W = calc_wam(data);
     return W;
 }
 
-mat_t* calc_full_ddg(const mat_t* data) {
+mat_t* calc_full_ddg(mat_t* data) {
     mat_t* W;
     mat_t* D;
     W = calc_wam(data);
@@ -16,7 +16,7 @@ mat_t* calc_full_ddg(const mat_t* data) {
     return D;
 }
 
-mat_t* calc_full_lnorm(const mat_t* data) {
+mat_t* calc_full_lnorm(mat_t* data) {
     mat_t* W;
     mat_t* D_inv_sqrt;
     mat_t* L_norm;
@@ -33,35 +33,35 @@ mat_t* calc_full_lnorm(const mat_t* data) {
     return L_norm;
 }
 
-void calc_full_jacobi(const mat_t* data, mat_t** eigenvectors, mat_t** eigenvalues) {
+void calc_full_jacobi(mat_t* data, mat_t** eigenvectors, mat_t** eigenvalues) {
     calc_jacobi(data, eigenvectors, eigenvalues);
 }
 
-status_t print_wam(const mat_t* data) {
+status_t print_wam(mat_t* data) {
     mat_t* w = calc_full_wam(data);
     if (!w) return ERROR;
     mat_print(w);
-    mat_free(w);
+    mat_free(&w);
     return SUCCESS;
 }
 
-status_t print_ddg(const mat_t* data) {
+status_t print_ddg(mat_t* data) {
     mat_t* d = calc_full_ddg(data);
     if (!d) return ERROR;
     mat_print(d);
-    mat_free(d);
+    mat_free(&d);
     return SUCCESS;
 }
 
-status_t print_lnorm(const mat_t* data) {
+status_t print_lnorm(mat_t* data) {
     mat_t* lnorm = calc_full_lnorm(data);
     if (!lnorm) return ERROR;
     mat_print(lnorm);
-    mat_free(lnorm);
+    mat_free(&lnorm);
     return SUCCESS;
 }
 
-status_t print_jacobi(const mat_t* data) {
+status_t print_jacobi(mat_t* data) {
     mat_t* eigenvectors;
     mat_t* eigenvalues;
     eigenvectors = NULL;
@@ -69,16 +69,16 @@ status_t print_jacobi(const mat_t* data) {
 
     calc_full_jacobi(data, &eigenvectors, &eigenvalues);
     if (!eigenvalues || !eigenvectors) {
-        if (eigenvectors) mat_free(eigenvectors);
-        if (eigenvalues) mat_free(eigenvalues);
+        if (eigenvectors) mat_free(&eigenvectors);
+        if (eigenvalues) mat_free(&eigenvalues);
         return ERROR;
     }
 
     mat_print_diagonal(eigenvalues);
     mat_print(eigenvectors);
 
-    mat_free(eigenvectors);
-    mat_free(eigenvalues);
+    mat_free(&eigenvectors);
+    mat_free(&eigenvalues);
     return SUCCESS;
 }
 
@@ -94,7 +94,7 @@ goal_t get_selected_routine(const char* goal_str) {
 
 
 int get_code_print_msg(int code, const char* msg) {
-    printf(msg);
+    printf("%s", msg);
     return code;
 }
 
@@ -117,6 +117,13 @@ int main(int argc, char* argv[]) {
     if (status != SUCCESS) {
         if (data) free(data);
         switch(status) {
+            case SUCCESS: {
+                break;
+            }
+            case ERROR: {
+                assertd(false);
+                return get_code_print_msg(1, MSG_ERR_GENERIC);
+            }
             case ERROR_FOPEN: {
                 return get_code_print_msg(1, MSG_ERR_INVALID_INPUT);
             }
@@ -127,12 +134,12 @@ int main(int argc, char* argv[]) {
                 return get_code_print_msg(1, MSG_ERR_GENERIC);
             }
         }
-        assert(false); /* this is not supposed to happen */
+        assertd(false); /* this is not supposed to happen */
         return get_code_print_msg(1, MSG_ERR_GENERIC);
     }
 
-    assert(status == SUCCESS);
-    assert(data);
+    assertd(status == SUCCESS);
+    assertd(data);
 
     if ((goal == JACOBI) && (data->h != data->w)) {
         if (data) free(data);
@@ -156,6 +163,10 @@ int main(int argc, char* argv[]) {
         }
         case JACOBI: {
             status = print_jacobi(data);
+            break;
+        }
+        default: {
+            status = INVALID_GOAL;
             break;
         }
     }

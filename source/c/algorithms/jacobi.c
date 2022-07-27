@@ -3,7 +3,7 @@
 mat_t* calc_P_ij(mat_t* A, uint i, uint j) {
     mat_t* P;
     real theta, t, c, s;
-    assert((A->h) == (A->w));
+    assertd((A->h) == (A->w));
     P = mat_init_identity(A->h);
     if (!P) return NULL;
     theta = (mat_get(A,j,j) - mat_get(A,i,i)) / (2*mat_get(A,i,j));
@@ -21,7 +21,7 @@ mat_t* calc_P_ij(mat_t* A, uint i, uint j) {
 void perform_V_iteration_ij_cs(mat_t* V, uint i, uint j, real c, real s) {
     real new_value;
     uint k, n;
-    assert(V && (V->h == V->w));
+    assertd(V && (V->h == V->w));
     n = V->h;
     /* deal with i'th col in V */
     for (k=0; k<n; k++) {
@@ -37,9 +37,9 @@ void perform_V_iteration_ij_cs(mat_t* V, uint i, uint j, real c, real s) {
 }
 
 /* V = V @ P_ij with A */
-void perform_V_iteration_ij(mat_t* V, uint i, uint j, const mat_t* A) {
+void perform_V_iteration_ij(mat_t* V, uint i, uint j, mat_t* A) {
     real theta, t, c, s;
-    assert((A->h) == (A->w));
+    assertd_is_square(A);
     theta = (mat_get(A,j,j) - mat_get(A,i,i)) / (2*mat_get(A,i,j));
     t = real_sign(theta) / (real_abs(theta) + sqrt(1 + pow(theta, 2)));
     c = 1 / sqrt(1 + pow(t, 2));
@@ -64,20 +64,16 @@ void get_indices_of_max_element(mat_t* A, uint* i, uint* j) {
 }
 
 void perform_V_iteration(mat_t* V, mat_t* A) {
-    uint i=-1, j=-1;
+    uint i, j;
+    i=0, j=0;
     get_indices_of_max_element(A, &i, &j);
-    assert(i>=0);
-    assert(j>=0);
     perform_V_iteration_ij(V, i, j, A);
 }
 
 void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
-    assert(A_tag && V && A);
-    assert(A_tag->h == A_tag->w);
-    assert(A_tag->w == V->h);
-    assert(V->h == V->w);
-    assert(V->w == A->h);
-    assert(A->h == A->w);
+    assertd(A_tag); assertd(V); assertd(A);
+    assertd_is_square(A_tag); assertd_is_square(V); assertd_is_square(A);
+    assertd_same_dims(A_tag, V); assertd_same_dims(V, A);
     perform_V_iteration(V, A);
     mat_mul(A_tag, A, V);
     mat_transpose(V);
@@ -109,7 +105,7 @@ void calc_jacobi(mat_t* A, mat_t** eigenvectors, mat_t** eigenvalues) {
     mat_t* A_tag;
     mat_t* V;
     uint n, rotations;
-    assert(A->h == A->w);
+    assertd(is_square(A));
     n = A->h;
     A_tag = mat_init_like(A);
     V = mat_init_identity(n);

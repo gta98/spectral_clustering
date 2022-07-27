@@ -4,6 +4,6 @@
 #include "generics/common_includes.h"
 #include "generics/matrix.h"
 
-mat_t* calc_lnorm(const mat_t* W, const mat_t* D_inv_sqrt);
+mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt);
 
 #endif

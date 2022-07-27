@@ -51,7 +51,7 @@ uint* argsort(const real* v, const uint n) {
     validx_t* indices;
     uint* indices_uint;
     uint i;
-    assert(v);
+    assertd(v);
 
     indices = NULL;
     indices_uint = NULL;
@@ -83,13 +83,20 @@ uint* argsort_desc(const real* v, const uint n) {
     indices = argsort(v, n);
     if (!indices) return NULL;
     for (i=0, max_i=floor(n/2); i<max_i; i++) {
-        swap(&(indices[i]), &(indices[n-i]));
+        swap_uint(&(indices[i]), &(indices[n-i]));
     }
     return indices;
 }
 
 void swap(real* x, real* y) {
     real z;
+    z = *x;
+    *x = *y;
+    *y = z;
+}
+
+void swap_uint(uint* x, uint* y) {
+    uint z;
     z = *x;
     *x = *y;
     *y = z;
@@ -114,11 +121,16 @@ status_t reorder_real_vector_by_indices(real* v, uint* indices, uint n) {
     for (i=0; i<n; i++) {
         while (indices[i] != i) {
             swap(&(v[i]), &(v[indices[i]]));
-            swap(&(indices[i]), &(indices[indices[i]]));
+            swap_uint(&(indices[i]), &(indices[indices[i]]));
         }
     }
     free(indices_copy);
     return SUCCESS;
+}
+
+char lowercase(const char c) {
+    if (('A' <= c) && (c <= 'Z')) return c-'A'+'a';
+    else return c;
 }
 
 bool streq_insensitive(const char* s1, const char* s2) {
@@ -126,7 +138,7 @@ bool streq_insensitive(const char* s1, const char* s2) {
     n = strlen(s1);
     if (n != strlen(s2)) return false;
     for (i=0; i<n; i++) {
-        if (tolower(s1[i]) != tolower(s2[i])) {
+        if (lowercase(s1[i]) != lowercase(s2[i])) {
             return false;
         }
     }

@@ -6,10 +6,11 @@ PATH_OUT="./output"
 
 mkdir -p $PATH_OUT
 
-##-Werror -pedantic-errors \
-gcc -ansi -Wall -Wextra \
+gcc -ansi -Wall -Wextra -Werror -pedantic-errors \
+    -D FLAG_DEBUG \
+    -D FLAG_PRINTD \
+    -D FLAG_ASSERTD \
     -I $PATH_SRC \
-    $PATH_SRC/spkmeans.c \
     $PATH_SRC/generics/common_utils.c \
     $PATH_SRC/generics/matrix.c \
     $PATH_SRC/generics/matrix_reader.c \
@@ -18,5 +19,6 @@ gcc -ansi -Wall -Wextra \
     $PATH_SRC/algorithms/lnorm.c \
     $PATH_SRC/algorithms/jacobi.c \
     $PATH_SRC/algorithms/eigengap.c \
+    $PATH_SRC/spkmeans.c \
     -lm \
     -o $PATH_OUT/spkmeans

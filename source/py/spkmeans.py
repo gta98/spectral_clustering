@@ -88,7 +88,7 @@ def get_data_from_cmd():
         return data
 
     def _verify_params_make_sense(k: int, goal: str, data: np.ndarray):
-        assert(data.ndim == 2)
+        assertd(data.ndim == 2)
         n, d = data.shape
         if n == 0:
             raise GenericErrorTrigger("Data, as parsed, is empty - nothing to work on")
