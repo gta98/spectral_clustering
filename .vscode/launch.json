@@ -50,14 +50,13 @@
     },
     {
       "type": "cppbuild",
-      "label": "C/C++: g++.exe build active file",
       "command": "gcc",
       "args": [
         "-fdiagnostics-color=always",
         "-g",
         "${file}",
         "-o",
-        "${fileDirname}/output/${fileBasenameNoExtension}"
+        "${fileDirname}/../../output/${fileBasenameNoExtension}"
       ],
       "options": {
         "cwd": "${fileDirname}"
