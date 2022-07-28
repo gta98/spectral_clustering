@@ -1,29 +1,14 @@
 from setuptools import setup, find_packages, Extension
 import sysconfig
 
-"""
-    Calling
-    $python setup.py build_ext --inplace
-    will build the extension library in the current file.
-
-    Calling
-    $python setup.py build
-    will build a file that looks like ./build/lib*, where
-    lib* is a file that begins with lib. The library will
-    be in this file and end with a C library extension,
-    such as .so
-
-    Calling
-    $python setup.py install
-    will install the module in your site-packages file.
-
-    See the distutils section of
-    'Extending and Embedding the Python Interpreter'
-    at docs.python.org for more information.
-"""
+PATH_SRC=".././source/c"
+PATH_OUT=".././output"
 
 extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
-extra_compile_args += ["-Wall", "-Werror", "-pedantic-errors"]
+extra_compile_args += [
+    "-Wall", "-Werror", "-pedantic-errors",
+    
+]
 
 # setup() parameters - https://packaging.python.org/guides/distributing-packages-using-setuptools/
 setup(
@@ -52,10 +37,26 @@ setup(
     ext_modules=[
         Extension(
             # the qualified name of the extension module to build
-            'mykmeanssp',
+            'spkmeansmodule',
             # the files to compile into our module relative to ``setup.py``
-            ['kmeans.c'],
-            extra_compile_args=extra_compile_args,
+            [
+                f"{PATH_SRC}/generics/common_utils.c",
+                f"{PATH_SRC}/generics/matrix.c",
+                f"{PATH_SRC}/generics/matrix_reader.c",
+                f"{PATH_SRC}/algorithms/wam.c",
+                f"{PATH_SRC}/algorithms/ddg.c",
+                f"{PATH_SRC}/algorithms/lnorm.c",
+                f"{PATH_SRC}/algorithms/jacobi.c",
+                f"{PATH_SRC}/algorithms/eigengap.c",
+                f"{PATH_SRC}/spkmeans.c",
+                f"{PATH_SRC}/kmeans.c"
+            ],
+            extra_compile_args=extra_compile_args+[
+                f"-D FLAG_DEBUG",
+                f"-D FLAG_PRINTD",
+                f"-D FLAG_ASSERTD",
+                f"-I {PATH_SRC}"
+            ],
         ),
     ]
 )

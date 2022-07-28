@@ -2,22 +2,25 @@
 #include "matrix.h"
 
 
-/* initialize mat(h,w) with junk and return */
+/* initialize mat(h,w) with zero and return */
 mat_t* mat_init(const uint h, const uint w) {
     mat_t* mat;
     int i, mat_size;
     mat_size = h*w;
     mat = malloc(sizeof(mat_t));
     if (!mat) return NULL;
-    mat->__data = malloc(sizeof(real)*mat_size);
-    if (!mat->__data) {
-        free(mat);
-        return NULL;
-    }
-    for (i=0; i<mat_size; mat->__data[i]=0, i++);
     mat->__swap_axes = false;
     mat->h = h;
     mat->w = w;
+    if (mat_size > 0) {
+        mat->__data = calloc(mat_size, sizeof(real));
+        if (!mat->__data) {
+            free(mat);
+            return NULL;
+        }
+    } else {
+        mat->__data = NULL;
+    }
     return mat;
 }
 
