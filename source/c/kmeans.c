@@ -1,6 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <math.h> 
+#include "generics/common_utils.h"
 
 
 /*/////////////////////
@@ -31,12 +32,6 @@
 /*///////////////////////////
 // Data Structures - START //
 ///////////////////////////*/
-
-typedef struct Point {
-    struct Point* next;
-    double* coord;
-    int cluster;
-} point_t;
 
 typedef struct PointList {
     point_t* head;
@@ -147,15 +142,6 @@ double get_abs_point(point_t point, int dims_count) {
     }
     dist = pow(dist, 0.5);
     return dist;
-}
-
-int isanum(char* s) {
-    int i;
-    for (i = 0; s[i] != 0; i++) {
-        if (!(('0' <= s[i]) && (s[i] <= '9')))
-            return 0;
-    }
-    return 1;
 }
 
 int allocate_points(point_t** centroids_list, int points_count, int dims_count) {
@@ -441,7 +427,7 @@ static PyMethodDef mykmeansspMethods[] = {
 };
 
 /* This initiates the module using the above definitions. */
-static struct PyModuleDef moduledef = {
+static struct PyModuleDef mykmeanssp_moduledef = {
     PyModuleDef_HEAD_INIT,
     "mykmeanssp", /* name of module */
     NULL, /* module documentation, may be NULL */
@@ -452,7 +438,7 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC PyInit_mykmeanssp(void)
 {
     PyObject *m;
-    m = PyModule_Create(&moduledef);
+    m = PyModule_Create(&mykmeanssp_moduledef);
     if (!m) {
         return NULL;
     }

@@ -5,7 +5,7 @@
 /* initialize mat(h,w) with zero and return */
 mat_t* mat_init(const uint h, const uint w) {
     mat_t* mat;
-    int i, mat_size;
+    int mat_size;
     mat_size = h*w;
     mat = malloc(sizeof(mat_t));
     if (!mat) return NULL;

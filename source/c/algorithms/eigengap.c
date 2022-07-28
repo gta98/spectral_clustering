@@ -36,7 +36,7 @@ uint calc_k(mat_t* eigenvalues) {
     assertd(half_n >= 1);
     max_eigengap_idx = 0;
     max_eigengap_val = mat_get(eigenvalues,0,0);
-    for (i=1; i<n; i++) {
+    for (i=1; i<half_n; i++) {
         eigengap_val = mat_get(eigenvalues,i,i);
         if (eigengap_val > max_eigengap_val) {
             max_eigengap_idx = i;

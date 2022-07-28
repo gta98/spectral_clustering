@@ -11,6 +11,7 @@ typedef float           real;
 typedef uint32_t        uint;
 
 typedef struct Point {
+    struct Point* next;
     double* coord;
     int cluster;
 } point_t;
@@ -46,10 +47,21 @@ typedef enum Status {
 #define JACOBI_EPSILON       ((real)1e-5)
 
 /* FIXME - what is the actual value of DBL_MIN? */
+#ifndef INFINITY
 #define INFINITY __DBL_MAX__
+#endif
+
+#ifndef INF
 #define INF INFINITY
+#endif
+
+#ifndef NEGATIVE_INFINITY
 #define NEGATIVE_INFINITY __DBL_MIN__
+#endif
+
+#ifndef NEG_INF
 #define NEG_INF NEGATIVE_INFINITY
+#endif
 
 
 #endif

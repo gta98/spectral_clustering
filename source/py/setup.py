@@ -1,25 +1,31 @@
 from setuptools import setup, find_packages, Extension
 import sysconfig
+import distutils.command.build
 import os
 
-PATH_SRC="../.././source/c"
-PATH_OUT="../.././output"
+cwd = os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(os.path.dirname(__file__)) ))
 
-os.mkdir(f"{PATH_OUT}")
 
-extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
-extra_compile_args += [
-    "-Wall", "-Werror", "-pedantic-errors",
-    
-]
+PATH_SRC=f"{cwd}/source/c"
+PATH_OUT=f"{cwd}/output"
+
+os.makedirs(f"{PATH_OUT}", exist_ok=True)
+
+# Override build command
+class BuildCommand(distutils.command.build.build):
+    def initialize_options(self):
+        distutils.command.build.build.initialize_options(self)
+        self.build_base = f"{PATH_OUT}"
 
 # setup() parameters - https://packaging.python.org/guides/distributing-packages-using-setuptools/
 setup(
-    name='KMeansAlgorithm',
+    name='spkmeans',
     version='6.9.4.2.0',
     author="Spongebob Squarepants",
     author_email="a@xb.ax",
-    description="This is an implementation of the KMeans algorithm",
+    description="This is an implementation of the spkmeans algorithm",
     install_requires=['invoke'],
     packages=find_packages(),
     license='GPL-2',
@@ -40,7 +46,7 @@ setup(
     ext_modules=[
         Extension(
             # the qualified name of the extension module to build
-            'spkmeansmodule',
+            'spkmeans',
             # the files to compile into our module relative to ``setup.py``
             [
                 f"{PATH_SRC}/generics/common_utils.c",
@@ -52,14 +58,23 @@ setup(
                 f"{PATH_SRC}/algorithms/jacobi.c",
                 f"{PATH_SRC}/algorithms/eigengap.c",
                 f"{PATH_SRC}/spkmeans.c",
-                f"{PATH_SRC}/kmeans.c"
+                f"{PATH_SRC}/kmeans.c",
+                f"{PATH_SRC}/spkmeansmodule.c"
             ],
-            extra_compile_args=extra_compile_args+[
+            extra_compile_args=[
+                "-Wall", "-Wextra", "-Werror", "-pedantic-errors", "-lm",
+                "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
+                "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
+                "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
                 f"-D FLAG_ASSERTD",
-                f"-I {PATH_SRC}"
-            ],
+            ] + sysconfig.get_config_var('CFLAGS').split(),
         ),
-    ]
+    ],
+    include_dirs=[
+        f'{PATH_SRC}'
+    ],
+    build_dir=f"{PATH_OUT}",
+    cmdclass={"build":BuildCommand}
 )

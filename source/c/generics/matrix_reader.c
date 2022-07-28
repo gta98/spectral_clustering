@@ -170,6 +170,7 @@ file_read_enum FILE_get_next_num(FILE* fh, double* num) {
     is_signed = false;
     is_negative = false;
     loc_dot = -1;
+    loc_first_nonzero = -1;
     do {
         c = fgetc(fh);
 

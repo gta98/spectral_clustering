@@ -119,6 +119,7 @@ void calc_jacobi(mat_t* A, mat_t** eigenvectors, mat_t** eigenvalues) {
     *eigenvectors = V;
     *eigenvalues = A_tag;
 
+    rotations = 0;
     do {
         perform_A_V_iteration(A_tag, A, V);
         A = A_tag;
