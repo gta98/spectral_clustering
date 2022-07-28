@@ -1,8 +1,11 @@
 from setuptools import setup, find_packages, Extension
 import sysconfig
+import os
 
-PATH_SRC=".././source/c"
-PATH_OUT=".././output"
+PATH_SRC="../.././source/c"
+PATH_OUT="../.././output"
+
+os.mkdir(f"{PATH_OUT}")
 
 extra_compile_args = sysconfig.get_config_var('CFLAGS').split()
 extra_compile_args += [
