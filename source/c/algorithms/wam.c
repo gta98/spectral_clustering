@@ -9,6 +9,9 @@ mat_t* calc_wam(mat_t* data) {
     d = data->w;
     W = mat_init(n, n);
     if (!W) return NULL;
+    printd("n is %d, d is %d\n",n,d);
+    printd("mat is:\n");
+    mat_print(data);
 
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
@@ -16,7 +19,10 @@ mat_t* calc_wam(mat_t* data) {
             for (k=0; k<d; k++) {
                 sum += pow((mat_get(data, i, k) - mat_get(data, j, k)), 2);
             }
-            sum = exp(-1 * (pow(sum, 0.5) / 2));
+            sum = sqrt(sum);
+            sum = sum / 2;
+            printd("cursum3: %f\n",sum);
+            sum = exp(-1 * sum);
             mat_set(W, i, j, sum);
         }
     }
