@@ -117,16 +117,17 @@ def calc_ddg(W: np.ndarray) -> np.ndarray:
 
 @wrap__ndarray_to_list_of_lists
 def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
-    D_pow_minus_half = D**(-0.5)
+    D_pow_minus_half = np.diag(np.diag(D**(-0.5))) # removes inf's off diag and replaces with zeros
     DWD = (D_pow_minus_half @ W @ D_pow_minus_half)
-    I = np.diag(np.ones_like(DWD))
+    assertd(DWD.shape[0] == DWD.shape[1])
+    I = identity_matrix_like(DWD)
     L_norm = I-DWD
     return L_norm
 
 
 @wrap__ndarray_to_list_of_lists
 def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
-    assertd(len(A.ndim)==2)
+    assertd(A.ndim==2)
     P = identity_matrix_like(A)
     theta = (A[j,j] - A[i,i]) / (2*A[i,j])
     t = sign(theta) / (np.abs(theta) + np.sqrt(1 + (theta**2)))
@@ -145,7 +146,7 @@ def get_indices_of_max_element(A: np.ndarray) -> Tuple:
 
 @wrap__ndarray_to_list_of_lists
 def calc_P(A: np.ndarray) -> np.ndarray:
-    assertd(len(A.ndim)==2)
+    assertd(A.ndim==2)
     A_abs = np.abs(A)
     largest_abs_element_location: Tuple = get_indices_of_max_element(A_abs)
     assertd(len(largest_abs_element_location) == 2)

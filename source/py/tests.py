@@ -98,12 +98,14 @@ class TestFit(unittest.TestCase):
     def test_ddg(self):
         self._compare_c_and_py('ddg', make_compatible_blob(), spkmeans_utils.full_ddg, spkmeansmodule.full_ddg, self._comparator_mat)
     
-    @unittest.skip("Does not work")
+    #@unittest.skip("Does not work")
     def test_lnorm(self):
         self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
-    
+
+    @unittest.skip("Does not work")
     def test_jacobi(self):
-        pass
+        self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(),
+            spkmeans_utils.full_jacobi, spkmeansmodule.full_jacobi, self._comparator_jacobi)
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
