@@ -216,6 +216,27 @@ void mat_swap_cols(mat_t* A, const uint col_1, const uint col_2) {
     }
 }
 
+void mat_normalize_rows(mat_t* dst, mat_t* src) {
+    uint i, j, n, k;
+    real uij, sum_j_uij_2;
+    assertd_same_dims(dst, src);
+    n = dst->h;
+    k = dst->w;
+
+    for (i=0; i<n; i++) {
+        sum_j_uij_2 = 0;
+        for (j=0; j<k; j++) {
+            uij = mat_get(src, i, j);
+            sum_j_uij_2 += uij*uij;
+        }
+        sum_j_uij_2 = sqrt(sum_j_uij_2);
+        for (j=0; j<k; j++) {
+            uij = mat_get(src, i, j);
+            mat_set(dst, i, j, uij/sum_j_uij_2);
+        }
+    }
+}
+
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices) {
     uint i;
     uint n;

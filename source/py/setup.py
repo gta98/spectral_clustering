@@ -46,7 +46,24 @@ setup(
     ext_modules=[
         Extension(
             # the qualified name of the extension module to build
-            'spkmeans',
+            'mykmeanssp',
+            # the files to compile into our module relative to ``setup.py``
+            [
+                f"{PATH_SRC}/kmeans.c"
+            ],
+            extra_compile_args=[
+                "-Wall", "-Wextra", "-Werror", "-pedantic-errors", "-lm",
+                "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
+                "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
+                "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
+                f"-D FLAG_DEBUG",
+                f"-D FLAG_PRINTD",
+                f"-D FLAG_ASSERTD",
+            ] + sysconfig.get_config_var('CFLAGS').split(),
+        ),
+        Extension(
+            # the qualified name of the extension module to build
+            'spkmeansmodule',
             # the files to compile into our module relative to ``setup.py``
             [
                 f"{PATH_SRC}/generics/common_utils.c",

@@ -5,5 +5,6 @@
 #include "generics/matrix.h"
 
 status_t read_data(mat_t** dst, char* path_to_input);
+status_t write_data(mat_t* src, char* path_to_output);
 
 #endif

@@ -18,8 +18,9 @@ typedef enum Goal {
     JACOBI,
     INVALID_GOAL
 } goal_t;
-const char* GOALS[] = {"spk", "wam", "ddg", "lnorm", "jacobi"};
-const uint GOALS_COUNT = 5;
+/*#define GOALS_COUNT 5
+extern char GOALS[GOALS_COUNT][7];*/
+
 
 mat_t* calc_full_wam(mat_t* data);
 mat_t* calc_full_ddg(mat_t* data);

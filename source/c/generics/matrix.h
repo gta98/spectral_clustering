@@ -75,6 +75,8 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs);
 /* returns mat_lhs @ mat_rhs */
 mat_t* matmul(mat_t* mat_lhs, mat_t* mat_rhs);
 
+void mat_normalize_rows(mat_t* dst, mat_t* src);
+
 /* prints mat to stdout */
 void mat_print(mat_t* mat);
 

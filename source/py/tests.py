@@ -13,13 +13,33 @@ from typing import List
 import math
 import time
 from sklearn.datasets import make_blobs
+import spkmeansmodule
+import utils as spkmeans_utils
 import re
+import os
 
 
 class TestFit(unittest.TestCase):
 
+    def test_numpy_to_numpy(self):
+        # this tests: read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
+        n, d = 100, 10
+        A = np.round(np.random.rand(n*d)*10,4).reshape((n,d))
+        A_list = [[float(y) for y in x] for x in A]
+        save_path = "./tmp_mat.txt"
+        with open(f'{save_path}.orig', 'w') as f:
+            for line in A_list:
+                f.write(','.join([str(x) for x in line]) + '\n')
+        #print(A_list)
+        B_list = spkmeans_utils.numpy_to_numpy(A_list, save_path)
+        B_list = [[round(y,4) for y in x] for x in B_list]
+        #os.system(f"rm {save_path}")
+        self.assertEqual(A_list, B_list)
+
+
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
+        make_blobs()
         np.random.seed(0)
         for i in range(100):
             self.test_c_and_sklearn_equal()
@@ -49,7 +69,7 @@ class TestFit(unittest.TestCase):
         print("test_my_py_runtime_vs_sklearn() - END")
 
 
-    #@unittest.skip("Only needed once in a while")
+    @unittest.skip("Only needed once in a while")
     def test_equal_to_templates(self):
         def test_equal_to_template_idx(*args):
             print(f"test_equal_to_template_idx{args} - start")

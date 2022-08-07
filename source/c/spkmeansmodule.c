@@ -5,10 +5,229 @@
 #include "generics/common_types.h"
 #include "generics/matrix.h"
 #include "generics/matrix_reader.h"
+#include "spkmeans.h"
 
 static mat_t* PyListListFloat_to_Mat(PyObject* py_mat);
 static PyObject* Mat_to_PyListListFloat(mat_t* mat);
+static PyObject* MatDiag_to_PyListFloat(mat_t* mat);
 
+
+static PyObject* full_wam(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+    mat_t* result;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result = calc_full_wam(data);
+    mat_free(&data);
+
+    py_result = Mat_to_PyListListFloat(result);
+    mat_free(&result);
+    return py_result;
+}
+
+static PyObject* full_ddg(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+    mat_t* result;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result = calc_full_ddg(data);
+    mat_free(&data);
+
+    py_result = Mat_to_PyListListFloat(result);
+    mat_free(&result);
+    return py_result;
+}
+
+static PyObject* full_lnorm(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+    mat_t* result;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result = calc_full_lnorm(data);
+    mat_free(&data);
+
+    py_result = Mat_to_PyListListFloat(result);
+    mat_free(&result);
+    return py_result;
+}
+
+static PyObject* full_jacobi(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result_vectors;
+    PyObject* py_result_values;
+    PyObject* py_result_tuple;
+    mat_t* data;
+    mat_t* result_vectors;
+    mat_t* result_values;
+
+    py_data = NULL;
+    py_result_vectors = NULL;
+    py_result_values = NULL;
+    py_result_tuple = NULL;
+    data = NULL;
+    result_vectors = NULL;
+    result_values = NULL;
+
+    if (!PyArg_ParseTuple(args, "O", &data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result_vectors = NULL, result_values = NULL;
+    calc_full_jacobi(data, &result_vectors, &result_values);
+    mat_free(&data);
+    data = NULL;
+
+    py_result_vectors = Mat_to_PyListListFloat(result_vectors);
+    if (!py_result_vectors) goto free_vectors_values_failure;
+    mat_free(&result_vectors);
+    result_vectors = NULL;
+
+    py_result_values = MatDiag_to_PyListFloat(result_values); /* FIXME */
+    if (!py_result_values) goto free_vectors_values_failure;
+    mat_free(&result_values);
+    result_values = NULL;
+
+    py_result_tuple = PyList_New(2);
+    if (!py_result_tuple) goto free_vectors_values_failure;
+
+    PyList_SetItem(py_result_tuple, 0, py_result_values);
+    PyList_SetItem(py_result_tuple, 1, py_result_vectors);
+
+    return py_result_tuple;
+
+    free_vectors_values_failure:
+    if (result_vectors) mat_free(&result_vectors);
+    if (result_values) mat_free(&result_values);
+    if (py_result_vectors) Py_DECREF(py_result_vectors);
+    if (py_result_values) Py_DECREF(py_result_values);
+    return NULL;
+}
+
+static PyObject* full_jacobi_sorted(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result_vectors;
+    PyObject* py_result_values;
+    PyObject* py_result_tuple;
+    mat_t* data;
+    mat_t* result_vectors;
+    mat_t* result_values;
+    status_t status;
+
+    py_data = NULL;
+    py_result_vectors = NULL;
+    py_result_values = NULL;
+    py_result_tuple = NULL;
+    data = NULL;
+    result_vectors = NULL;
+    result_values = NULL;
+
+    if (!PyArg_ParseTuple(args, "O", &data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result_vectors = NULL, result_values = NULL;
+    calc_full_jacobi(data, &result_vectors, &result_values);
+    mat_free(&data);
+    data = NULL;
+
+    status = sort_cols_by_vector_desc(result_vectors, result_values);
+    if (status != SUCCESS) goto free_vectors_values_failure_2;
+
+    py_result_vectors = Mat_to_PyListListFloat(result_vectors);
+    if (!py_result_vectors) goto free_vectors_values_failure_2;
+    mat_free(&result_vectors);
+    result_vectors = NULL;
+
+    py_result_values = MatDiag_to_PyListFloat(result_values); /* FIXME */
+    if (!py_result_values) goto free_vectors_values_failure_2;
+    mat_free(&result_values);
+    result_values = NULL;
+
+    py_result_tuple = PyList_New(2);
+    if (!py_result_tuple) goto free_vectors_values_failure_2;
+
+    PyList_SetItem(py_result_tuple, 0, py_result_values);
+    PyList_SetItem(py_result_tuple, 1, py_result_vectors);
+
+    return py_result_tuple;
+
+    free_vectors_values_failure_2:
+    if (result_vectors) mat_free(&result_vectors);
+    if (result_values) mat_free(&result_values);
+    if (py_result_vectors) Py_DECREF(py_result_vectors);
+    if (py_result_values) Py_DECREF(py_result_values);
+    return NULL;
+}
+
+static PyObject* normalize_matrix_by_rows(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    mat_normalize_rows(data, data);
+
+    py_result = Mat_to_PyListListFloat(data);
+    mat_free(&data);
+
+    return py_result;
+}
+
+static PyObject* full_calc_k(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+    uint result;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+
+    result = calc_k(data);
+    mat_free(&data);
+
+    py_result = PyLong_FromUnsignedLong((unsigned long) result);
+    return py_result;
+}
 
 static PyObject* test_read_data(PyObject* self, PyObject* args) {
     PyObject* py_path;
@@ -16,7 +235,7 @@ static PyObject* test_read_data(PyObject* self, PyObject* args) {
     mat_t* mat;
     char* path;
     status_t result;
-    if (!PyArg_ParseTuple(args, "s", &py_path)) {
+    if (!PyArg_ParseTuple(args, "O", &py_path)) {
         return NULL;
     }
 
@@ -34,6 +253,36 @@ static PyObject* test_read_data(PyObject* self, PyObject* args) {
     return py_mat;
 }
 
+static PyObject* test_write_data(PyObject* self, PyObject* args) {
+    PyObject* py_path;
+    PyObject* py_mat;
+    mat_t* mat;
+    char* path;
+    status_t result;
+    if (!PyArg_ParseTuple(args, "OO", &py_mat, &py_path)) {
+        return NULL;
+    }
+/*    printd("bloooooo\n");*/
+
+    mat = PyListListFloat_to_Mat(py_mat);
+    if (!mat) return PyErr_NoMemory();
+    printd("converted mat\n");
+    /* explicit casting to discard const safely */
+    path = (char*) PyUnicode_AsUTF8(py_path);
+
+    printd("wrooooot\n");
+    printd("pooth is %s\n", path);
+    result = write_data(mat, path);
+    Py_DECREF(py_path);
+
+    if (result != SUCCESS) {
+        return PyErr_Occurred();
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     mat_t* mat;
     PyObject* py_row;
@@ -47,12 +296,12 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     mat = NULL;
 
     h = (int) PyList_Size(py_mat); /* originally Py_ssize_t */
-    if (h < 0) goto invalid_data; /* Not a list */
+    if (h < 0) goto invalid_data_1; /* Not a list */
     if (h == 0) return mat_init(0,0);
 
     py_row = PyList_GetItem(py_mat, 0);
     w = (int) PyList_Size(py_row);
-    if (w < 0) goto invalid_data;
+    if (w < 0) goto invalid_data_2;
 
     mat = mat_init((const uint)h,(const uint)w);
     if (!mat) return NULL;
@@ -60,11 +309,11 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     for (i=0; i<(uint)h; i++) {
         py_row = PyList_GetItem(py_mat, i);
         w = PyList_Size(py_row);
-        if ((w < 0) || (((uint)w) != mat->w)) goto invalid_data;
+        if ((w < 0) || (((uint)w) != mat->w)) goto invalid_data_3;
 
         for (j=0; j<(uint)w; j++) {
-            py_cell = PyList_GetItem(py_mat, j);
-            if (!PyFloat_Check(py_cell)) goto invalid_data;
+            py_cell = PyList_GetItem(py_row, j);
+            if (!PyFloat_Check(py_cell)) goto invalid_data_4;
             mat_cell = PyFloat_AsDouble(py_cell);
             if (PyErr_Occurred()) goto error_occurred;
             mat_set(mat, i, j, mat_cell);
@@ -75,7 +324,15 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     return mat;
 
     error_occurred:
-    invalid_data:
+    printd("errror occurred\n");
+    invalid_data_1:
+    printd("invalid_data_1\n");
+    invalid_data_2:
+    printd("invalid_data_2\n");
+    invalid_data_3:
+    printd("invalid_data_3\n");
+    invalid_data_4:
+    printd("invalid_data_4\n");
     if(mat) mat_free(&mat);
     return NULL;
 }
@@ -128,16 +385,79 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
     return PyErr_NoMemory();
 }
 
+static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
+    PyObject* py_mat;
+    PyObject* py_cell;
+    uint i, h;
+    real cell;
+
+    if (!mat) return NULL;
+
+    h = mat->h;
+
+    py_mat = PyList_New(h);
+    if (!py_mat) return NULL;
+
+    for (i=0; i<h; i++) {
+        cell = mat_get(mat, i, i);
+        py_cell = Py_BuildValue("d", cell);
+        PyList_SetItem(py_cell, i, py_cell);
+    }
+
+    return py_mat;
+
+    /*error_malloc_diag:
+    h_err = i, w_err = j;
+    for (i=0; i<h_err; i++) {
+        py_cell = PyList_GetItem(py_mat, i);
+        Py_DECREF(py_cell);
+    }
+    return PyErr_NoMemory();*/
+}
+
+
 static PyMethodDef spkmeansmoduleMethods[] = {
     {"test_read_data", 
       (PyCFunction) test_read_data,
       METH_VARARGS, 
       PyDoc_STR("This method performs the k-means algorithm with the specified arguments")},
-    {NULL, NULL, 0, NULL} 
+    {"test_write_data", 
+      (PyCFunction) test_write_data,
+      METH_VARARGS, 
+      PyDoc_STR("This method performs the k-means algorithm with the specified arguments")},
+    {"full_wam", 
+      (PyCFunction) full_wam,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates weighted adjacency matrix on given datapoints")},
+    {"full_ddg", 
+      (PyCFunction) full_ddg,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates diagonal degree matrix on given datapoints")},
+    {"full_lnorm", 
+      (PyCFunction) full_lnorm,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates L-Norm on given datapoints")},
+    {"full_jacobi", 
+      (PyCFunction) full_jacobi,
+      METH_VARARGS, 
+      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+    {"full_jacobi_sorted", /* FIXME - PyDocs */
+      (PyCFunction) full_jacobi_sorted,
+      METH_VARARGS, 
+      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+    {"normalize_matrix_by_rows", /* FIXME - PyDocs */
+      (PyCFunction) normalize_matrix_by_rows,
+      METH_VARARGS, 
+      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+    {"full_calc_k", /* FIXME - PyDocs */
+      (PyCFunction) full_calc_k,
+      METH_VARARGS, 
+      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+    {NULL, NULL, 0, NULL}
 };
 
 /* This initiates the module using the above definitions. */
-static struct PyModuleDef moduledef = {
+static struct PyModuleDef spkmeans_moduledef = {
     PyModuleDef_HEAD_INIT,
     "spkmeansmodule", /* name of module */
     NULL, /* module documentation, may be NULL */
@@ -148,7 +468,7 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC PyInit_spkmeansmodule(void)
 {
     PyObject *m;
-    m = PyModule_Create(&moduledef);
+    m = PyModule_Create(&spkmeans_moduledef);
     if (!m) {
         return NULL;
     }

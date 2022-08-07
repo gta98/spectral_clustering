@@ -6,6 +6,7 @@ import pandas as pd
 import mykmeanssp
 from kmeans_pp import calc_kmeanspp
 from utils import *
+import spkmeansmodule
 from definitions import *
 
 
@@ -14,34 +15,27 @@ def main():
     np.random.seed(0)
     k, goal, datapoints = get_data_from_cmd()
 
-    if Goal[goal].value <= Goal.WAM.value:
-        W = calc_wam(datapoints)
-    if Goal[goal].value <= Goal.DDG.value:
-        D = calc_ddg(W)
-    if Goal[goal].value <= Goal.LNORM.value:
-        L_norm = calc_L_norm(W, D)
-    
-    
-
-    if   goal == 'spk':
-        W = calc_wam(datapoints)
-        L_norm = calc_L_norm(W)
-        results = calc_kmeanspp(k, datapoints)
+    if goal == 'spk':
+        L_norm = spkmeansmodule.full_lnorm(datapoints)
+        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
+        k = spkmeansmodule.full_calc_k(eigenvalues)
+        U = eigenvectors[:k]
+        T = spkmeansmodule.normalize_matrix_by_rows(U)
+        results = calc_kmeanspp(k, T)
     elif goal == 'wam':
-        results = calc_wam(datapoints)
+        results = spkmeansmodule.full_wam(datapoints)
     elif goal == 'ddg':
-        results = calc_ddg(datapoints)
+        results = spkmeansmodule.full_ddg(datapoints)
     elif goal == 'lnorm':
-        results = calc_L_norm(datapoints)
+        results = spkmeansmodule.full_lnorm(datapoints)
     elif goal == 'jacobi':
-        eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
-        print(','.join(["%.4f"%y for y in x]) for x in eigenvalues)
-        results = eigenvectors
-        pass
+        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi(datapoints)
+        results = eigenvalues + eigenvectors
+    else:
+        raise InvalidInputTrigger("Invalid goal specified!")
+
+    assertd(results)
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
-
-
-def full_calc_wam(datapoints: np.ndarray) -> np.ndarray:
 
 
 def get_data_from_cmd():

@@ -83,6 +83,8 @@ int get_code_print_msg(int code, const char* msg) {
     return code;
 }
 
+#define GOALS_COUNT 5
+static char GOALS[GOALS_COUNT][7] = {"spk", "wam", "ddg", "lnorm", "jacobi"};
 goal_t get_selected_routine(const char* goal_str) {
     uint i;
     for (i=0; i<GOALS_COUNT; i++) {

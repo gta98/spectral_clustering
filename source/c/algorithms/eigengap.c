@@ -5,11 +5,8 @@ status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
     status_t status;
     uint* sorting_indices;
     uint n, i;
-    assertd(A);
-    assertd(v);
-    assertd(A->h == A->w);
-    assertd(v->h == v->w);
-    assertd(A->h == v->h);
+    assertd_is_square(A);
+    assertd_same_dims(A, v);
 
     n = v->h;
     eigenvalues = malloc(sizeof(real)*n);

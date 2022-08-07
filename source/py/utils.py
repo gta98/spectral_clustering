@@ -1,12 +1,15 @@
 
 from ctypes.wintypes import DWORD
-from typing import List, Tuple
+from typing import List, Tuple, NoReturn, Union
 import numpy as np
 import os
 import sys
 import pandas as pd
 import mykmeanssp
 from definitions import *
+
+def assertd(condition:bool) -> Union[None, NoReturn]:
+    assert(condition)
 
 def sign(num: int) -> int:
     if num == 0:
@@ -214,3 +217,49 @@ def calc_k(datapoints: np.ndarray) -> np.ndarray:
         if delta_abs[i] == delta_max:
             return i
     raise Exception("We were supposed to return")
+
+
+@wrap__ndarray_to_list_of_lists
+def numpy_to_numpy(datapoints: np.ndarray, save_path: str) -> np.ndarray:
+    # takes datapoints as np array, returns datapoints as np array
+    # 1. Py converts numpy into List[List[float]]
+    # 2. Py sends to C as List[List[float]] and save_path
+    # 3. C converts List[List[float]] to double**
+    # 4. C writes double** into save_path
+    # 5. Py asks C to read matrix from save_path
+    # 6. C parses double** from save_path using matrix_reader
+    # 7. C converts double** to List[List[float]]
+    # 8. Py converts List[List[float]] to numpy
+    # this also tests the wrapper
+    # if this works, we confirm read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
+    import spkmeansmodule
+    datapoints = [list(x) for x in datapoints] # 1
+    print("blargh")
+    spkmeansmodule.test_write_data(datapoints, save_path) # 2, 3, 4
+    print("bloorgh")
+    datapoints_tag = spkmeansmodule.test_read_data(save_path) # 5, 6, 7
+    #datapoints_tag = datapoints
+    return datapoints_tag # 8
+
+
+def full_wam(datapoints: List[List[float]]) -> List[List[float]]:
+    W = calc_wam(datapoints)
+    return W
+
+
+def full_ddg(datapoints: List[List[float]]) -> List[List[float]]:
+    W = full_wam(datapoints)
+    D = calc_ddg(W)
+    return D
+
+
+def full_lnorm(datapoints: List[List[float]]) -> List[List[float]]:
+    W = full_wam(datapoints)
+    D = calc_ddg(W)
+    Lnorm = calc_L_norm(W, D)
+    return Lnorm
+
+
+def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
+    eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
+    return eigenvalues, eigenvectors
