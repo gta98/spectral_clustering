@@ -98,7 +98,6 @@ class TestFit(unittest.TestCase):
     def test_ddg(self):
         self._compare_c_and_py('ddg', make_compatible_blob(), spkmeans_utils.full_ddg, spkmeansmodule.full_ddg, self._comparator_mat)
     
-    #@unittest.skip("Does not work")
     def test_lnorm(self):
         self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
 

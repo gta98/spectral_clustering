@@ -13,7 +13,6 @@
       "cwd": "${workspaceRoot}/source/py",
       "console": "integratedTerminal",
       "args": [],
-      "stopOnEntry": true,
       "justMyCode": false,
     },
     {
@@ -25,7 +24,6 @@
       "cwd": "${workspaceRoot}/source/py",
       "console": "integratedTerminal",
       "args": [],
-      "stopOnEntry": true,
       "justMyCode": false,
     },
     {
