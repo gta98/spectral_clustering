@@ -355,6 +355,43 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     return NULL;
 }
 
+static mat_t* PyListFloat_to_Mat(PyObject* py_mat) {
+    mat_t* mat;
+    PyObject* py_cell;
+    uint i;
+    int w;
+    double mat_cell;
+
+    if (!py_mat) {
+        printd("=========RETURNING ERROR 31==========\n");
+        return NULL;
+    }
+    
+    mat = NULL;
+
+    w = (int) PyList_Size(py_mat);
+    if (w < 0) goto invalid_data_22;
+
+    mat = mat_init((const uint)1,(const uint)w);
+    if (!mat) return NULL;
+
+    for (i=0; i<(uint)w; i++) {
+        py_cell = PyList_GetItem(py_mat, i);
+        mat_cell = PyFloat_AsDouble(py_cell);
+        if (PyErr_Occurred()) goto error_occurred_2;
+        mat_set(mat, 0, i, mat_cell);
+    }
+
+    return mat;
+
+    error_occurred_2:
+    printd("errror occurred\n");
+    invalid_data_22:
+    printd("invalid_data_2\n");
+    if(mat) mat_free(&mat);
+    return NULL;
+}
+
 static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
     PyObject* py_mat;
     PyObject* py_row;
@@ -577,6 +614,79 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
     return py_dst;
 }
 
+static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* self, PyObject* args) {
+    PyObject* py_mat;
+    PyObject* py_indices;
+    mat_t* mat;
+    mat_t* mat_indices;
+    uint* indices;
+    PyObject* py_dst;
+    uint j;
+    status_t result;
+
+    py_mat = NULL;
+    py_indices = NULL;
+    mat = NULL;
+    mat_indices = NULL;
+    indices = NULL;
+    py_dst = NULL;
+    result = INVALID;
+
+    if (!PyArg_ParseTuple(args, "OO", &py_mat, &py_indices)) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse arguments - expected 2 matrices");
+        return NULL;
+    }
+
+    mat = PyListListFloat_to_Mat(py_mat);
+    if (!mat) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert py_mat into mat");
+        goto wrap_mat_reorder_finish;
+    }
+    py_mat = NULL;
+
+    mat_indices = PyListFloat_to_Mat(py_indices);
+    if (!mat_indices) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert py_indices into mat_indices");
+        goto wrap_mat_reorder_finish;
+    }
+    py_indices = NULL;
+
+    if (mat->w != mat_indices->w) goto wrap_mat_reorder_diff_dims;
+    if (mat_indices->h != 1) goto wrap_mat_reorder_diff_dims;
+
+    indices = malloc(sizeof(uint)*mat_indices->w);
+    if (!indices) goto wrap_mat_reorder_no_memory;
+    for (j=0; j<mat_indices->w; j++) indices[j] = mat_get(mat_indices,0,j);
+
+    result = reorder_mat_cols_by_indices(mat, indices);
+    if (result != SUCCESS) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert reorder mat cols by indices");
+        goto wrap_mat_reorder_finish;
+    };
+
+    py_dst = Mat_to_PyListListFloat(mat);
+    if (!py_dst) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert mat into py_dst");
+        goto wrap_mat_reorder_finish;
+    }
+
+    goto wrap_mat_reorder_finish;
+
+    wrap_mat_reorder_no_memory:
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
+    goto wrap_mat_reorder_finish;
+
+    wrap_mat_reorder_diff_dims:
+    PyErr_SetString(PyExc_ValueError, "Matrices dimensions should match!");
+    goto wrap_mat_reorder_finish;
+
+    wrap_mat_reorder_finish:
+    if (mat) mat_free(&mat);
+    if (mat_indices) mat_free(&mat_indices);
+    if (indices) free(indices);
+    return py_dst;
+}
+
 #endif
 
 
@@ -617,7 +727,7 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) full_calc_k,
       METH_VARARGS, 
       PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
-    #ifdef FLAG_DEBUG
+#ifdef FLAG_DEBUG
     {"mat_cellwise_add",
       (PyCFunction) wrap_mat_cellwise_add,
       METH_VARARGS, 
@@ -638,7 +748,11 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) wrap_matmul,
       METH_VARARGS, 
       PyDoc_STR("Calculates multiple of two matrices")},
-    #endif
+    {"reorder_mat_cols_by_indices",
+      (PyCFunction) wrap_reorder_mat_cols_by_indices,
+      METH_VARARGS, 
+      PyDoc_STR("Reorders matrix (arg 1) by cols, according to indices (arg 2)")},
+#endif
     {NULL, NULL, 0, NULL}
 };
 

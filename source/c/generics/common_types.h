@@ -21,7 +21,8 @@ typedef enum Status {
     ERROR,
     ERROR_MALLOC,
     ERROR_FOPEN,
-    ERROR_FORMAT
+    ERROR_FORMAT,
+    INVALID
 } status_t;
 
 #define MAX_DATA_POINTS         1000

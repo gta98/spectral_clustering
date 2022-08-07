@@ -186,6 +186,10 @@ def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     eigenvectors = V
     return eigenvalues, eigenvectors
 
+@wrap__ndarray_to_list_of_lists
+def reorder_mat_cols_by_indices(A: np.ndarray, v: np.array) -> np.ndarray:
+    return A[:, np.array(v)]
+
 
 @wrap__ndarray_to_list_of_lists
 def sort_cols_by_vector_desc(A: np.ndarray, v: np.array) -> Tuple[np.ndarray, np.array]:

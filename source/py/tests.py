@@ -144,6 +144,16 @@ class TestFit(unittest.TestCase):
         C_module = spkmeansmodule.matmul(A, B)
         relative_error = relative_error_centroids(C, C_module)
         self.assertLess(relative_error, 1e-3)
+    
+    def test_mat_swap_rows(self):
+        A = make_compatible_blob(14,44,offset=+1.0)
+        indices = np.arange(44)
+        np.random.shuffle(indices)
+        indices = [int(x) for x in indices]
+        B = spkmeans_utils.reorder_mat_cols_by_indices(A, indices)
+        B_module = spkmeansmodule.reorder_mat_cols_by_indices(A, indices)
+        relative_error = relative_error_centroids(B, B_module)
+        self.assertLess(relative_error, 1e-5)
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
