@@ -27,6 +27,7 @@ def make_compatible_blob(n=100,d=10) -> List[List[float]]:
 
 class TestFit(unittest.TestCase):
 
+    @unittest.skip("This is no longer relevant")
     def test_numpy_to_numpy(self):
         # this tests: read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
         n, d = 100, 10
@@ -44,15 +45,16 @@ class TestFit(unittest.TestCase):
     
     def test_wam(self):
         np.random.rand(1000)
-        datapoints = make_compatible_blob(10,3)
-        print()
-        print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
+        datapoints = make_compatible_blob()
+        #print()
+        #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
         result_c = spkmeansmodule.full_wam(datapoints)
         result_py = spkmeans_utils.full_wam(datapoints)
-        print()
-        print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
+        #print()
+        #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
         dist = dist_between_centroid_lists(result_c, result_py)
-        print(f"disto is {dist}")
+        relative_error = relative_error_centroids(result_py, result_c)
+        self.assertLess(relative_error, 1e-3)
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):

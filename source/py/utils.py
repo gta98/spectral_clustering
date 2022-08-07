@@ -102,7 +102,7 @@ def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     datapoints_horizontal = datapoints.reshape((1,n,d)) #datapoints_horizontal = datapoints.squeeze()
     datapoints_vertical = datapoints_horizontal.swapaxes(0,1)
     datapoints_delta = datapoints_vertical - datapoints_horizontal
-    datapoints_dist_squared = np.sum(datapoints_delta**2, axis=2)
+    datapoints_dist_squared = np.sqrt(np.sum(datapoints_delta**2, axis=2))
     W_with_diagonal = np.exp(-1 * (datapoints_dist_squared / 2))
     W = W_with_diagonal - np.diag(W_with_diagonal.diagonal())
     return W
