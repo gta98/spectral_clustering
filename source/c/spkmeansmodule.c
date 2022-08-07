@@ -92,42 +92,57 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
     result_vectors = NULL;
     result_values = NULL;
 
-    if (!PyArg_ParseTuple(args, "O", &data)) {
-        return NULL;
+    printd("======EEEEEE===========\n");
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        goto set_tuple_failed_parse;
     }
 
     data = PyListListFloat_to_Mat(py_data);
-    if (data == NULL) return NULL;
+    if (data == NULL) goto set_tuple_failed_malloc;
 
     result_vectors = NULL, result_values = NULL;
     calc_full_jacobi(data, &result_vectors, &result_values);
+    printd("======Hola===========\n");
+    mat_print(result_values);
     mat_free(&data);
     data = NULL;
 
     py_result_vectors = Mat_to_PyListListFloat(result_vectors);
-    if (!py_result_vectors) goto free_vectors_values_failure;
+    if (!py_result_vectors) goto set_tuple_failed_malloc;
+    printd("======Hola 1===========\n");
     mat_free(&result_vectors);
     result_vectors = NULL;
 
     py_result_values = MatDiag_to_PyListFloat(result_values); /* FIXME */
-    if (!py_result_values) goto free_vectors_values_failure;
+    if (!py_result_values) goto set_tuple_failed_malloc;
+    printd("======Hola 2===========\n");
     mat_free(&result_values);
     result_values = NULL;
 
     py_result_tuple = PyList_New(2);
-    if (!py_result_tuple) goto free_vectors_values_failure;
+    if (!py_result_tuple) goto set_tuple_failed_malloc;
+    printd("======Hola 3===========\n");
 
     PyList_SetItem(py_result_tuple, 0, py_result_values);
+    printd("======Hola 4===========\n");
     PyList_SetItem(py_result_tuple, 1, py_result_vectors);
+    printd("======Hola 5===========\n");
 
     return py_result_tuple;
 
+    set_tuple_failed_parse:
+    py_result_tuple = PyErr_Occurred();
+    goto free_vectors_values_failure;
+    set_tuple_failed_malloc:
+    py_result_tuple = PyErr_NoMemory();
+    goto free_vectors_values_failure;
     free_vectors_values_failure:
     if (result_vectors) mat_free(&result_vectors);
     if (result_values) mat_free(&result_values);
     if (py_result_vectors) Py_DECREF(py_result_vectors);
     if (py_result_values) Py_DECREF(py_result_values);
-    return NULL;
+    return py_result_tuple;
 }
 
 static PyObject* full_jacobi_sorted(PyObject* self, PyObject* args) {
@@ -291,7 +306,10 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     int h, w;
     double mat_cell;
 
-    if (!py_mat) return NULL;
+    if (!py_mat) {
+        printd("=========RETURNING ERROR 21==========\n");
+        return NULL;
+    }
     
     mat = NULL;
 
@@ -345,20 +363,29 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
     uint h_err, w_err;
     real cell;
 
-    if (!mat) return NULL;
+    if (!mat) {
+        printd("=========RETURNING ERROR 1==========\n");
+        return PyErr_Occurred();
+    }
 
     h = mat->h, w = mat->w;
 
     py_mat = PyList_New(h);
-    if (!py_mat) return NULL;
+    if (!py_mat) {
+        printd("=========RETURNING ERROR 2==========\n");
+        return PyErr_NoMemory();
+    }
 
     for (i=0; i<h; i++) {
         py_row = PyList_New(w);
-        if (!py_row) goto error_malloc;
+        if (!py_row) goto error_malloc_mat_to_listlist;
 
         for (j=0; j<w; j++) {
             cell = mat_get(mat, i, j);
             py_cell = Py_BuildValue("d", cell);
+            if (!py_cell || PyErr_Occurred()) {
+                printd("Could not build value!!! Numero uno\n");
+            }
             PyList_SetItem(py_row, j, py_cell);
         }
 
@@ -367,7 +394,8 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
 
     return py_mat;
 
-    error_malloc:
+    error_malloc_mat_to_listlist:
+    printd("=========RETURNING ERROR 3==========\n");
     h_err = i, w_err = j;
     if (py_row) {
         for (j=0; j<w_err; j++) {
@@ -391,28 +419,31 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
     uint i, h;
     real cell;
 
-    if (!mat) return NULL;
+    if (!mat) {
+        printd("=========RETURNING ERROR 11==========\n");
+        return PyErr_Occurred();
+    }
 
     h = mat->h;
 
     py_mat = PyList_New(h);
-    if (!py_mat) return NULL;
+    if (!py_mat) {
+        printd("=========RETURNING ERROR 12==========\n");
+        return PyErr_NoMemory();
+    }
 
     for (i=0; i<h; i++) {
         cell = mat_get(mat, i, i);
         py_cell = Py_BuildValue("d", cell);
-        PyList_SetItem(py_cell, i, py_cell);
+        if (!py_cell || PyErr_Occurred()) {
+            printd("Could not build value for %f!!! Numero dos\n", cell);
+        } else {
+            printd("Numero dos passed for %f\n", cell);
+        }
+        PyList_SetItem(py_mat, i, py_cell);
     }
 
     return py_mat;
-
-    /*error_malloc_diag:
-    h_err = i, w_err = j;
-    for (i=0; i<h_err; i++) {
-        py_cell = PyList_GetItem(py_mat, i);
-        Py_DECREF(py_cell);
-    }
-    return PyErr_NoMemory();*/
 }
 
 

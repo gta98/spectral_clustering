@@ -83,7 +83,7 @@ class TestFit(unittest.TestCase):
         vector_py, vector_c = np.array(vector_py), np.array(vector_c)
         dist_vector = np.sqrt(np.sum(np.square(vector_py-vector_c)))
         relative_error_vector = dist_vector/np.sqrt(np.sum(np.square(vector_py)))
-        self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error (eigenvalues)")
+        self.assertEqual(type(relative_error_vector), np.float64, f"Failed test for {name}: could not determine relative error (eigenvalues)")
         self.assertLess(relative_error_vector, 1e-3, f"Failed test for {name}: eigenvalues are too far apart")
         relative_error = relative_error_centroids(mat_py, mat_c)
         self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error")
@@ -92,18 +92,22 @@ class TestFit(unittest.TestCase):
     def _comparator_calc_k(self, name: str, result_py: int, result_c: int):
         self.assertEqual(result_c, result_py, f"Failed test for {name}: Calculated k's are not equal - k(py)={result_py}, k(c)={result_c}")
 
+    @unittest.skip("----------------")
     def test_wam(self):
         self._compare_c_and_py('wam', make_compatible_blob(), spkmeans_utils.full_wam, spkmeansmodule.full_wam, self._comparator_mat)
     
+    @unittest.skip("----------------")
     def test_ddg(self):
         self._compare_c_and_py('ddg', make_compatible_blob(), spkmeans_utils.full_ddg, spkmeansmodule.full_ddg, self._comparator_mat)
     
+    @unittest.skip("----------------")
     def test_lnorm(self):
         self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
 
-    @unittest.skip("Does not work")
+    #@unittest.skip("Does not work")
     def test_jacobi(self):
-        self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(),
+        print("\n\n\n\n\n\n\n\n")
+        self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(3),
             spkmeans_utils.full_jacobi, spkmeansmodule.full_jacobi, self._comparator_jacobi)
 
     @unittest.skip("Disable if too heavy")

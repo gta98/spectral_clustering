@@ -163,7 +163,7 @@ def calc_off_squared(A: np.ndarray) -> np.ndarray:
     return A_without_diagonal__square__sum
 
 
-@wrap__ndarray_to_list_of_lists
+#@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     assertd(is_square_matrix(A_original))
     V = identity_matrix_like(A_original)
@@ -262,5 +262,8 @@ def full_lnorm(datapoints: List[List[float]]) -> List[List[float]]:
 
 
 def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
+    datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
+    eigenvalues = [float(x) for x in eigenvalues]
+    eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors
