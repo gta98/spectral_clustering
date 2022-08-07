@@ -9,9 +9,9 @@ mat_t* calc_wam(mat_t* data) {
     d = data->w;
     W = mat_init(n, n);
     if (!W) return NULL;
-    printd("n is %d, d is %d\n",n,d);
+    /*printd("n is %d, d is %d\n",n,d);
     printd("mat is:\n");
-    mat_print(data);
+    mat_print(data);*/
 
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
@@ -28,7 +28,7 @@ mat_t* calc_wam(mat_t* data) {
     }
 
     for (i=0; i<n; i++) mat_set(W, i, i, 0);
-    mat_print(W);
+    /*mat_print(W);*/
 
     return W;
 }

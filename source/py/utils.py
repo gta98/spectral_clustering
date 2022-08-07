@@ -117,7 +117,7 @@ def calc_ddg(W: np.ndarray) -> np.ndarray:
 
 @wrap__ndarray_to_list_of_lists
 def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
-    D_pow_minus_half = np.diag(np.diag(D**(-0.5))) # removes inf's off diag and replaces with zeros
+    D_pow_minus_half = np.diag(np.diag(D)**(-0.5)) # removes inf's off diag and replaces with zeros
     DWD = (D_pow_minus_half @ W @ D_pow_minus_half)
     assertd(DWD.shape[0] == DWD.shape[1])
     I = identity_matrix_like(DWD)
@@ -191,11 +191,13 @@ def reorder_mat_cols_by_indices(A: np.ndarray, v: np.array) -> np.ndarray:
     return A[:, np.array(v)]
 
 
-@wrap__ndarray_to_list_of_lists
+#@wrap__ndarray_to_list_of_lists
 def sort_cols_by_vector_desc(A: np.ndarray, v: np.array) -> Tuple[np.ndarray, np.array]:
     sorting_indices = np.argsort(v)[::-1]
-    v_sorted = v[sorting_indices]
-    A_sorted = A[:, sorting_indices]
+    v_sorted = np.array(v)[sorting_indices]
+    A_sorted = np.array(A)[:, sorting_indices]
+    A_sorted = [[float(y) for y in x] for x in A_sorted]
+    v_sorted = [float(y) for y in v_sorted]
     return A_sorted, v_sorted
 
 

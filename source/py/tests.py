@@ -97,15 +97,15 @@ class TestFit(unittest.TestCase):
     def _comparator_calc_k(self, name: str, result_py: int, result_c: int):
         self.assertEqual(result_c, result_py, f"Failed test for {name}: Calculated k's are not equal - k(py)={result_py}, k(c)={result_c}")
 
-    @unittest.skip("----------------")
+    #@unittest.skip("----------------")
     def test_wam(self):
         self._compare_c_and_py('wam', make_compatible_blob(), spkmeans_utils.full_wam, spkmeansmodule.full_wam, self._comparator_mat)
     
-    @unittest.skip("----------------")
+    #@unittest.skip("----------------")
     def test_ddg(self):
         self._compare_c_and_py('ddg', make_compatible_blob(), spkmeans_utils.full_ddg, spkmeansmodule.full_ddg, self._comparator_mat)
     
-    @unittest.skip("----------------")
+    #@unittest.skip("----------------")
     def test_lnorm(self):
         self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
 
@@ -152,6 +152,17 @@ class TestFit(unittest.TestCase):
         indices = [int(x) for x in indices]
         B = spkmeans_utils.reorder_mat_cols_by_indices(A, indices)
         B_module = spkmeansmodule.reorder_mat_cols_by_indices(A, indices)
+        relative_error = relative_error_centroids(B, B_module)
+        self.assertLess(relative_error, 1e-5)
+    
+    @unittest.skip("LALALALALLA")
+    def test_sort_cols_by_vector_desc(self):
+        A = make_compatible_blob(14,44,offset=+1.0)
+        indices = np.arange(44)
+        np.random.shuffle(indices)
+        indices = [int(x) for x in indices]
+        B = spkmeans_utils.sort_cols_by_vector_desc(A, indices)
+        B_module = spkmeansmodule.sort_cols_by_vector_desc(A, indices)
         relative_error = relative_error_centroids(B, B_module)
         self.assertLess(relative_error, 1e-5)
 

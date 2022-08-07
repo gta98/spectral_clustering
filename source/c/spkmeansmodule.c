@@ -244,60 +244,6 @@ static PyObject* full_calc_k(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* test_read_data(PyObject* self, PyObject* args) {
-    PyObject* py_path;
-    PyObject* py_mat;
-    mat_t* mat;
-    char* path;
-    status_t result;
-    if (!PyArg_ParseTuple(args, "O", &py_path)) {
-        return NULL;
-    }
-
-    /* explicit casting to discard const safely */
-    path = (char*) PyUnicode_AsUTF8(py_path);
-    result = read_data(&mat, path);
-    Py_DECREF(py_path);
-    if (result != SUCCESS) {
-        return PyErr_Occurred();
-    }
-
-    py_mat = Mat_to_PyListListFloat(mat);
-    mat_free(&mat);
-
-    return py_mat;
-}
-
-static PyObject* test_write_data(PyObject* self, PyObject* args) {
-    PyObject* py_path;
-    PyObject* py_mat;
-    mat_t* mat;
-    char* path;
-    status_t result;
-    if (!PyArg_ParseTuple(args, "OO", &py_mat, &py_path)) {
-        return NULL;
-    }
-/*    printd("bloooooo\n");*/
-
-    mat = PyListListFloat_to_Mat(py_mat);
-    if (!mat) return PyErr_NoMemory();
-    printd("converted mat\n");
-    /* explicit casting to discard const safely */
-    path = (char*) PyUnicode_AsUTF8(py_path);
-
-    printd("wrooooot\n");
-    printd("pooth is %s\n", path);
-    result = write_data(mat, path);
-    Py_DECREF(py_path);
-
-    if (result != SUCCESS) {
-        return PyErr_Occurred();
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     mat_t* mat;
     PyObject* py_row;
@@ -484,6 +430,61 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
 }
 
 #ifdef FLAG_DEBUG
+
+static PyObject* test_read_data(PyObject* self, PyObject* args) {
+    PyObject* py_path;
+    PyObject* py_mat;
+    mat_t* mat;
+    char* path;
+    status_t result;
+    if (!PyArg_ParseTuple(args, "O", &py_path)) {
+        return NULL;
+    }
+
+    /* explicit casting to discard const safely */
+    path = (char*) PyUnicode_AsUTF8(py_path);
+    result = read_data(&mat, path);
+    Py_DECREF(py_path);
+    if (result != SUCCESS) {
+        return PyErr_Occurred();
+    }
+
+    py_mat = Mat_to_PyListListFloat(mat);
+    mat_free(&mat);
+
+    return py_mat;
+}
+
+static PyObject* test_write_data(PyObject* self, PyObject* args) {
+    PyObject* py_path;
+    PyObject* py_mat;
+    mat_t* mat;
+    char* path;
+    status_t result;
+    if (!PyArg_ParseTuple(args, "OO", &py_mat, &py_path)) {
+        return NULL;
+    }
+/*    printd("bloooooo\n");*/
+
+    mat = PyListListFloat_to_Mat(py_mat);
+    if (!mat) return PyErr_NoMemory();
+    printd("converted mat\n");
+    /* explicit casting to discard const safely */
+    path = (char*) PyUnicode_AsUTF8(py_path);
+
+    printd("wrooooot\n");
+    printd("pooth is %s\n", path);
+    result = write_data(mat, path);
+    Py_DECREF(py_path);
+
+    if (result != SUCCESS) {
+        return PyErr_Occurred();
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), PyObject* mat_tuple) {
     PyObject* py_mat_1;
     PyObject* py_mat_2;
@@ -590,9 +591,11 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
 
     dst = mat_init(mat_1->h, mat_1->w);
     if (!dst) goto wrap_matmul_no_memory;
-    
-    dst = matmul(mat_1, mat_2);
+
+    mat_transpose(mat_1); mat_transpose(mat_2);
+    dst = matmul(mat_2, mat_1);
     if (!dst) goto wrap_matmul_no_memory;
+    mat_transpose(dst);
 
     py_dst = Mat_to_PyListListFloat(dst);
     if (!py_dst) goto wrap_matmul_no_memory;
@@ -687,6 +690,76 @@ static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* self, PyObject* args
     return py_dst;
 }
 
+static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
+    PyObject* py_mat;
+    PyObject* py_eigenvalues;
+    mat_t* mat;
+    mat_t* mat_eigenvalues;
+    mat_t* mat_eigenvalues_flat;
+    PyObject* py_dst;
+    uint j;
+    status_t result;
+
+    py_mat = NULL;
+    py_eigenvalues = NULL;
+    mat = NULL;
+    mat_eigenvalues = NULL;
+    mat_eigenvalues_flat = NULL;
+    py_dst = NULL;
+    result = INVALID;
+
+    if (!PyArg_ParseTuple(args, "OO", &py_mat, &py_eigenvalues)) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse arguments - expected 2 matrices");
+        return NULL;
+    }
+
+    mat = PyListListFloat_to_Mat(py_mat);
+    if (!mat) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert py_mat into mat");
+        goto wrap_mat_sort_cols_desc_finish;
+    }
+    py_mat = NULL;
+
+    mat_eigenvalues_flat = PyListFloat_to_Mat(py_eigenvalues);
+    if (!mat_eigenvalues_flat) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert py_eigenvalues into mat_eigenvalues_flat");
+        goto wrap_mat_sort_cols_desc_finish;
+    }
+    py_eigenvalues = NULL;
+
+    mat_eigenvalues = mat_init_full(mat_eigenvalues_flat->h, mat_eigenvalues_flat->w, 0);
+    if (!mat_eigenvalues) {
+        PyErr_SetString(PyExc_MemoryError, "Could not initialize mat_eigenvalues");
+        goto wrap_mat_sort_cols_desc_finish;
+    }
+    for (j=0; j<mat_eigenvalues_flat->w; j++) mat_set(mat_eigenvalues, j, j, mat_get(mat_eigenvalues_flat, 0, j));
+
+    if (mat->w != mat_eigenvalues->w) {
+        PyErr_SetString(PyExc_ValueError, "Matrix width does not match eigenvalues length!");
+        goto wrap_mat_sort_cols_desc_finish;
+    }
+
+    printd("Sukar 1\n");
+    result = SUCCESS; /*sort_cols_by_vector_desc(mat, mat_eigenvalues);*/
+    printd("Sukar 2\n");
+    if (result != SUCCESS) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert reorder mat cols by eigenvalues");
+        goto wrap_mat_sort_cols_desc_finish;
+    };
+
+    py_dst = Mat_to_PyListListFloat(mat);
+    if (!py_dst) {
+        PyErr_SetString(PyExc_MemoryError, "Could not convert mat into py_dst");
+        goto wrap_mat_sort_cols_desc_finish;
+    }
+
+    wrap_mat_sort_cols_desc_finish:
+    if (mat) mat_free(&mat);
+    if (mat_eigenvalues) mat_free(&mat_eigenvalues);
+
+    return py_dst;
+}
+
 #endif
 
 
@@ -752,6 +825,10 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) wrap_reorder_mat_cols_by_indices,
       METH_VARARGS, 
       PyDoc_STR("Reorders matrix (arg 1) by cols, according to indices (arg 2)")},
+    {"sort_cols_by_vector_desc",
+      (PyCFunction) wrap_sort_cols_by_vector_desc,
+      METH_VARARGS, 
+      PyDoc_STR("Sorts matrix (arg 1) by cols, according to vector (arg 2) sorting")},
 #endif
     {NULL, NULL, 0, NULL}
 };
