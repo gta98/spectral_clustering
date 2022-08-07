@@ -21,7 +21,7 @@ mat_t* calc_P_ij(mat_t* A, uint i, uint j) {
 void perform_V_iteration_ij_cs(mat_t* V, uint i, uint j, real c, real s) {
     real new_value;
     uint k, n;
-    assertd(V && (V->h == V->w));
+    assertd(V); assertd_is_square(V);
     n = V->h;
     /* deal with i'th col in V */
     for (k=0; k<n; k++) {

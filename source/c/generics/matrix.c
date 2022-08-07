@@ -49,39 +49,46 @@ void mat_free(mat_t** mat) {
 
 /* transpose mat */
 void mat_transpose(mat_t* mat) {
-    uint tmp;
-    tmp = mat->h;
-    mat->h = mat->w;
-    mat->w = tmp;
+    swap_uint(&mat->h, &mat->w);
     mat->__swap_axes = !mat->__swap_axes;
 }
 
 /* return mat[i][j] if __transposed==0, else mat[j][i] */
 real mat_get(mat_t* mat, uint i, uint j) {
-    uint tmp;
+    real value;
     if (mat->__swap_axes) {
-        tmp = i;
-        i = j;
-        j = tmp;
+        /* not thread safe but whatever lol */
+        mat_transpose(mat);
+        value = mat_get(mat, j, i);
+        mat_transpose(mat);
+        return value;
     }
-    /* (i<0), (j<0) are never true */
+
     if ((i >= mat->h) || (j >= mat->w)) {
-        printd("%d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
-        perror("Attempted to access invalid matrix indices!\n");
+        printd("mat_get: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
+        #ifdef FLAG_DEBUG
+        exit(1);
+        #endif
     }
     return mat->__data[(i*mat->w)+j];
 }
 
 /* mat[i][j] = new_value if __transposed==0, else mat[j][i] */
 void mat_set(mat_t* mat, uint i, uint j, const real new_value) {
-    uint tmp;
     if (mat->__swap_axes) {
-        tmp = i;
-        i = j;
-        j = tmp;
+        /* not thread safe but whatever lol */
+        mat_transpose(mat);
+        mat_set(mat, j, i, new_value);
+        mat_transpose(mat);
+        return;
     }
-    /* assertd((i>=0) && (j>=)); is always true, because unsigned */
-    assertd((i < mat->h) && (j < mat->w));
+
+    if ((i >= mat->h) || (j >= mat->w)) {
+        printd("mat_set: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
+        #ifdef FLAG_DEBUG
+        exit(1);
+        #endif
+    }
     mat->__data[(i*mat->w)+j] = new_value;
 }
 
@@ -197,6 +204,7 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs) {
         for (j=0; j<dst->w; j++) {
             value = 0;
             for (k=0; k<mat_lhs->w; k++) {
+                /*printd("getting %d, %d, %d\n", i, j, k);*/
                 val_lhs = mat_get(mat_lhs, i, k);
                 val_rhs = mat_get(mat_rhs, k, j);
                 value += val_lhs*val_rhs;
