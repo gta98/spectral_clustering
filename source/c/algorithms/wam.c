@@ -21,13 +21,14 @@ mat_t* calc_wam(mat_t* data) {
             }
             sum = sqrt(sum);
             sum = sum / 2;
-            printd("cursum3: %f\n",sum);
+            /*printd("cursum3: %f\n",sum);*/
             sum = exp(-1 * sum);
             mat_set(W, i, j, sum);
         }
     }
 
     for (i=0; i<n; i++) mat_set(W, i, i, 0);
+    mat_print(W);
 
     return W;
 }

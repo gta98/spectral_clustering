@@ -19,6 +19,12 @@ import re
 import os
 
 
+def make_compatible_blob(n=100,d=10) -> List[List[float]]:
+    x, _ = make_blobs(n_samples=n, n_features=d)
+    x: np.ndarray
+    return [list(y) for y in list(x)]
+
+
 class TestFit(unittest.TestCase):
 
     def test_numpy_to_numpy(self):
@@ -35,7 +41,18 @@ class TestFit(unittest.TestCase):
         B_list = [[round(y,4) for y in x] for x in B_list]
         #os.system(f"rm {save_path}")
         self.assertEqual(A_list, B_list)
-
+    
+    def test_wam(self):
+        np.random.rand(1000)
+        datapoints = make_compatible_blob(10,3)
+        print()
+        print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
+        result_c = spkmeansmodule.full_wam(datapoints)
+        result_py = spkmeans_utils.full_wam(datapoints)
+        print()
+        print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
+        dist = dist_between_centroid_lists(result_c, result_py)
+        print(f"disto is {dist}")
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
@@ -159,6 +176,11 @@ def dist_between_centroid_lists_redundant(list_1: List[List[float]], list_2: Lis
     return dist
 
 def dist_between_centroid_lists(list_1: np.ndarray, list_2: np.ndarray) -> float:
+    if type(list_1) == list and type(list_2) == list:
+        list_1 = np.array(list_1)
+        list_2 = np.array(list_2)
+    list_1 = np.around(list_1, 4)
+    list_2 = np.around(list_2, 4)
     return np.linalg.norm((list_1)-(list_2))
 
 def relative_error_centroids(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
