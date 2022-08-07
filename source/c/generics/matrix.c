@@ -49,32 +49,36 @@ void mat_free(mat_t** mat) {
 
 /* transpose mat */
 void mat_transpose(mat_t* mat) {
-    mat->h ^= mat->w;
-    mat->w ^= mat->h;
-    mat->h ^= mat->w;
+    uint tmp;
+    tmp = mat->h;
+    mat->h = mat->w;
+    mat->w = tmp;
     mat->__swap_axes = !mat->__swap_axes;
 }
 
 /* return mat[i][j] if __transposed==0, else mat[j][i] */
 real mat_get(mat_t* mat, uint i, uint j) {
+    uint tmp;
     if (mat->__swap_axes) {
-        i ^= j;
-        j ^= i;
-        i ^= j;
+        tmp = i;
+        i = j;
+        j = tmp;
     }
     /* (i<0), (j<0) are never true */
     if ((i >= mat->h) || (j >= mat->w)) {
-        perror("Attempted to access invalid matrix indices");
+        printd("%d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
+        perror("Attempted to access invalid matrix indices!\n");
     }
     return mat->__data[(i*mat->w)+j];
 }
 
 /* mat[i][j] = new_value if __transposed==0, else mat[j][i] */
 void mat_set(mat_t* mat, uint i, uint j, const real new_value) {
+    uint tmp;
     if (mat->__swap_axes) {
-        i ^= j;
-        j ^= i;
-        i ^= j;
+        tmp = i;
+        i = j;
+        j = tmp;
     }
     /* assertd((i>=0) && (j>=)); is always true, because unsigned */
     assertd((i < mat->h) && (j < mat->w));
@@ -185,14 +189,17 @@ void mat_scalar_pow(mat_t* dst, mat_t* mat, const real alpha) {
 void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs) {
     uint i, j, k;
     real value;
+    real val_lhs, val_rhs;
     assertd(mat_lhs->w == mat_rhs->h);
     assertd(dst->w == mat_rhs->w);
     assertd(dst->h == mat_lhs->h);
     for (i=0; i<dst->h; i++) {
         for (j=0; j<dst->w; j++) {
             value = 0;
-            for (k=0; k<dst->w; k++) {
-                value += mat_get(mat_lhs, i, k) * mat_get(mat_rhs, k, j);
+            for (k=0; k<mat_lhs->w; k++) {
+                val_lhs = mat_get(mat_lhs, i, k);
+                val_rhs = mat_get(mat_rhs, k, j);
+                value += val_lhs*val_rhs;
             }
             mat_set(dst, i, j, value);
         }
@@ -202,6 +209,7 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs) {
 mat_t* matmul(mat_t* mat_lhs, mat_t* mat_rhs) {
     mat_t* dst;
     dst = mat_init(mat_lhs->h, mat_rhs->w);
+    if (!dst) return NULL;
     mat_mul(dst, mat_lhs, mat_rhs);
     return dst;
 }

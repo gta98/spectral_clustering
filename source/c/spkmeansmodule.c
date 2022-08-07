@@ -475,7 +475,10 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
     if (!mat_2) goto wrap_mat_operation_no_memory;
     py_mat_2 = NULL;
 
-    if ((mat_1->h != mat_2->h) || (mat_1->w != mat_2->w)) goto wrap_mat_operation_diff_dims;
+    if ((mat_1->h != mat_2->h) || (mat_1->w != mat_2->w)) {
+        printd("(%d != %d) || (%d != %d)\n", mat_1->h, mat_2->h, mat_1->w, mat_2->w);
+        goto wrap_mat_operation_diff_dims;
+    }
 
     dst = mat_init(mat_1->h, mat_1->w);
     if (!dst) goto wrap_mat_operation_no_memory;
@@ -492,7 +495,7 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
     goto wrap_mat_operation_finish;
 
     wrap_mat_operation_diff_dims:
-    PyErr_SetString(PyExc_ValueError, "Matrices should have identical dimensions!");
+    PyErr_SetString(PyExc_ValueError, "Matrices should have identical dimensions! (mat_1->h != mat_2->h) || (mat_1->w != mat_2->w)");
     goto wrap_mat_operation_finish;
 
     wrap_mat_operation_finish:
@@ -540,12 +543,10 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
 
     mat_1 = PyListListFloat_to_Mat(py_mat_1);
     if (!mat_1) goto wrap_matmul_no_memory;
-    Py_DECREF(py_mat_1);
     py_mat_1 = NULL;
 
     mat_2 = PyListListFloat_to_Mat(py_mat_2);
     if (!mat_2) goto wrap_matmul_no_memory;
-    Py_DECREF(py_mat_2);
     py_mat_2 = NULL;
 
     if (mat_1->w != mat_2->h) goto wrap_matmul_diff_dims;
@@ -555,6 +556,10 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
     
     dst = matmul(mat_1, mat_2);
     if (!dst) goto wrap_matmul_no_memory;
+
+    py_dst = Mat_to_PyListListFloat(dst);
+    if (!py_dst) goto wrap_matmul_no_memory;
+
     goto wrap_matmul_finish;
 
     wrap_matmul_no_memory:
@@ -569,8 +574,6 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
     if (mat_1) mat_free(&mat_1);
     if (mat_2) mat_free(&mat_2);
     if (dst) mat_free(&dst);
-    if (py_mat_1) Py_DECREF(py_mat_1);
-    if (py_mat_2) Py_DECREF(py_mat_2);
     return py_dst;
 }
 
