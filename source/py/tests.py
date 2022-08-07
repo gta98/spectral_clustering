@@ -109,7 +109,7 @@ class TestFit(unittest.TestCase):
     def test_lnorm(self):
         self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
 
-    @unittest.skip("Does not work")
+    #@unittest.skip("Does not work")
     def test_jacobi(self):
         print("\n\n\n\n\n\n\n\n")
         self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(3),

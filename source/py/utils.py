@@ -162,6 +162,13 @@ def calc_off_squared(A: np.ndarray) -> np.ndarray:
     A_without_diagonal__square__sum = A_without_diagonal__square.sum()
     return A_without_diagonal__square__sum
 
+def calc_dist_between_offs(A_tag: np.ndarray, A: np.ndarray) -> float:
+    return calc_off_squared(A)-calc_off_squared(A_tag)
+
+def is_jacobi_convergence(A_tag: np.ndarray, A: np.ndarray, rotations: int) -> bool:
+    dist_between_offs = calc_dist_between_offs(A_tag, A)
+    assertd(dist_between_offs >= 0) # see forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=125232
+    return (dist_between_offs <= JACOBI_EPSILON) or (rotations == JACOBI_MAX_ROTATIONS)
 
 #@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -177,10 +184,7 @@ def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         assertd(V.shape == A.shape)
         A_tag = V.transpose() @ A_original @ V
         assertd(A_tag.shape == A.shape)
-        dist_between_offs = calc_off_squared(A)-calc_off_squared(A_tag)
-        assertd(dist_between_offs >= 0) # see forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=125232
-        if (dist_between_offs <= JACOBI_EPSILON) or (rotations == JACOBI_MAX_ROTATIONS):
-            break
+        if is_jacobi_convergence(A_tag, A, rotations): break
         A = A_tag
     eigenvalues = A_tag.diagonal()
     eigenvectors = V

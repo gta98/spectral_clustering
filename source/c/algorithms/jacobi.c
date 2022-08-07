@@ -50,7 +50,8 @@ void perform_V_iteration_ij(mat_t* V, uint i, uint j, mat_t* A) {
 void get_indices_of_max_element(mat_t* A, uint* i, uint* j) {
     uint k, l;
     real val, max_val;
-    max_val = NEG_INF;
+    max_val = mat_get(A,0,0);
+    *i = 0, *j = 0;
     for (k=0; k<A->h; k++) {
         for (l=0; l<A->w; l++) {
             val = mat_get(A, k, l);
@@ -84,15 +85,15 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
 /* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */
 
 
-real calc_dist(mat_t* A, mat_t* A_tag) {
+real calc_dist_between_offs(mat_t* A_tag, mat_t* A) {
     return calc_off_squared(A) - calc_off_squared(A_tag);
 }
 
-bool is_jacobi_convergence(mat_t* A, mat_t* A_tag, uint rotations) {
+bool is_jacobi_convergence(mat_t* A_tag, mat_t* A, uint rotations) {
     if (rotations >= JACOBI_MAX_ROTATIONS) {
         return true;
     } else {
-        if (calc_dist(A, A_tag) < JACOBI_EPSILON) {
+        if (calc_dist_between_offs(A_tag, A) < JACOBI_EPSILON) {
             return true;
         } else {
             return false;
@@ -122,9 +123,8 @@ void calc_jacobi(mat_t* A, mat_t** eigenvectors, mat_t** eigenvalues) {
     rotations = 0;
     do {
         perform_A_V_iteration(A_tag, A, V);
-        A = A_tag;
         rotations++;
-    } while (
-        !is_jacobi_convergence(A, A_tag, rotations)
-    );
+        if (is_jacobi_convergence(A_tag, A, rotations)) break;
+        A = A_tag;
+    } while (true);
 }
