@@ -83,7 +83,7 @@ uint* argsort_desc(const real* v, const uint n) {
     indices = argsort(v, n);
     if (!indices) return NULL;
     for (i=0, max_i=floor(n/2); i<max_i; i++) {
-        swap_uint(&(indices[i]), &(indices[n-i]));
+        swap_uint(indices+i, indices+n-i-1);
     }
     return indices;
 }
