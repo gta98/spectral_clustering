@@ -1,4 +1,7 @@
-cd ~/repos/softproj
+export PATH_ROOT="/home/fakename/repos/softproj"
+export PATH_SRC=${PATH_ROOT}/debug
+export PATH_OUT=${PATH_ROOT}/debug
+cd $PATH_ROOT
 rm -rf debug/*
 ./scripts/copy
 cd debug

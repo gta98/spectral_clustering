@@ -8,8 +8,8 @@ cwd = os.path.dirname(
             os.path.abspath(os.path.dirname(__file__)) ))
 
 
-PATH_SRC=f"{cwd}/source/c"
-PATH_OUT=f"{cwd}/output"
+PATH_SRC=os.environ.get('PATH_SRC') or f"{cwd}/source/c"
+PATH_OUT=os.environ.get('PATH_SRC') or f"{cwd}/output"
 
 os.makedirs(f"{PATH_OUT}", exist_ok=True)
 
