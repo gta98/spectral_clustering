@@ -331,7 +331,7 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
 
         for (j=0; j<(uint)w; j++) {
             py_cell = PyList_GetItem(py_row, j);
-            if (!PyFloat_Check(py_cell)) goto invalid_data_4;
+            if (!py_cell) goto invalid_data_4;
             mat_cell = PyFloat_AsDouble(py_cell);
             if (PyErr_Occurred()) goto error_occurred;
             mat_set(mat, i, j, mat_cell);
@@ -469,12 +469,10 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
 
     mat_1 = PyListListFloat_to_Mat(py_mat_1);
     if (!mat_1) goto wrap_mat_operation_no_memory;
-    Py_DECREF(py_mat_1);
     py_mat_1 = NULL;
 
     mat_2 = PyListListFloat_to_Mat(py_mat_2);
     if (!mat_2) goto wrap_mat_operation_no_memory;
-    Py_DECREF(py_mat_2);
     py_mat_2 = NULL;
 
     if ((mat_1->h != mat_2->h) || (mat_1->w != mat_2->w)) goto wrap_mat_operation_diff_dims;
@@ -483,6 +481,10 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
     if (!dst) goto wrap_mat_operation_no_memory;
     
     operation(dst, mat_1, mat_2);
+
+    py_dst = Mat_to_PyListListFloat(dst);
+    if (!py_dst) goto wrap_mat_operation_no_memory;
+
     goto wrap_mat_operation_finish;
 
     wrap_mat_operation_no_memory:
@@ -497,8 +499,6 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
     if (mat_1) mat_free(&mat_1);
     if (mat_2) mat_free(&mat_2);
     if (dst) mat_free(&dst);
-    if (py_mat_1) Py_DECREF(py_mat_1);
-    if (py_mat_2) Py_DECREF(py_mat_2);
     return py_dst;
 }
 
