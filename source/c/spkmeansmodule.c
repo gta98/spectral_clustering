@@ -446,6 +446,136 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
     return py_mat;
 }
 
+#ifdef FLAG_DEBUG
+static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), PyObject* mat_tuple) {
+    PyObject* py_mat_1;
+    PyObject* py_mat_2;
+    mat_t* mat_1;
+    mat_t* mat_2;
+    mat_t* dst;
+    PyObject* py_dst;
+
+    py_mat_1 = NULL;
+    py_mat_2 = NULL;
+    mat_1 = NULL;
+    mat_2 = NULL;
+    dst = NULL;
+    py_dst = NULL;
+
+    if (!PyArg_ParseTuple(mat_tuple, "OO", &py_mat_1, &py_mat_2)) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse arguments - expected 2 matrices");
+        return NULL;
+    }
+
+    mat_1 = PyListListFloat_to_Mat(py_mat_1);
+    if (!mat_1) goto wrap_mat_operation_no_memory;
+    Py_DECREF(py_mat_1);
+    py_mat_1 = NULL;
+
+    mat_2 = PyListListFloat_to_Mat(py_mat_2);
+    if (!mat_2) goto wrap_mat_operation_no_memory;
+    Py_DECREF(py_mat_2);
+    py_mat_2 = NULL;
+
+    if ((mat_1->h != mat_2->h) || (mat_1->w != mat_2->w)) goto wrap_mat_operation_diff_dims;
+
+    dst = mat_init(mat_1->h, mat_1->w);
+    if (!dst) goto wrap_mat_operation_no_memory;
+    
+    operation(dst, mat_1, mat_2);
+    goto wrap_mat_operation_finish;
+
+    wrap_mat_operation_no_memory:
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
+    goto wrap_mat_operation_finish;
+
+    wrap_mat_operation_diff_dims:
+    PyErr_SetString(PyExc_ValueError, "Matrices should have identical dimensions!");
+    goto wrap_mat_operation_finish;
+
+    wrap_mat_operation_finish:
+    if (mat_1) mat_free(&mat_1);
+    if (mat_2) mat_free(&mat_2);
+    if (dst) mat_free(&dst);
+    if (py_mat_1) Py_DECREF(py_mat_1);
+    if (py_mat_2) Py_DECREF(py_mat_2);
+    return py_dst;
+}
+
+static PyObject* wrap_mat_cellwise_add(PyObject* self, PyObject* args) {
+    return wrap_mat_cellwise(&mat_add_cellwise, args);
+}
+
+static PyObject* wrap_mat_cellwise_sub(PyObject* self, PyObject* args) {
+    return wrap_mat_cellwise(&mat_sub_cellwise, args);
+}
+
+static PyObject* wrap_mat_cellwise_mul(PyObject* self, PyObject* args) {
+    return wrap_mat_cellwise(&mat_mul_cellwise, args);
+}
+
+static PyObject* wrap_mat_cellwise_div(PyObject* self, PyObject* args) {
+    return wrap_mat_cellwise(&mat_mul_cellwise, args);
+}
+
+static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
+    PyObject* py_mat_1;
+    PyObject* py_mat_2;
+    mat_t* mat_1;
+    mat_t* mat_2;
+    mat_t* dst;
+    PyObject* py_dst;
+
+    py_mat_1 = NULL;
+    py_mat_2 = NULL;
+    mat_1 = NULL;
+    mat_2 = NULL;
+    dst = NULL;
+    py_dst = NULL;
+
+    if (!PyArg_ParseTuple(mat_tuple, "OO", &py_mat_1, &py_mat_2)) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse arguments - expected 2 matrices");
+        return NULL;
+    }
+
+    mat_1 = PyListListFloat_to_Mat(py_mat_1);
+    if (!mat_1) goto wrap_matmul_no_memory;
+    Py_DECREF(py_mat_1);
+    py_mat_1 = NULL;
+
+    mat_2 = PyListListFloat_to_Mat(py_mat_2);
+    if (!mat_2) goto wrap_matmul_no_memory;
+    Py_DECREF(py_mat_2);
+    py_mat_2 = NULL;
+
+    if (mat_1->w != mat_2->h) goto wrap_matmul_diff_dims;
+
+    dst = mat_init(mat_1->h, mat_1->w);
+    if (!dst) goto wrap_matmul_no_memory;
+    
+    dst = matmul(mat_1, mat_2);
+    if (!dst) goto wrap_matmul_no_memory;
+    goto wrap_matmul_finish;
+
+    wrap_matmul_no_memory:
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
+    goto wrap_matmul_finish;
+
+    wrap_matmul_diff_dims:
+    PyErr_SetString(PyExc_ValueError, "Matrices dimensions should match!");
+    goto wrap_matmul_finish;
+
+    wrap_matmul_finish:
+    if (mat_1) mat_free(&mat_1);
+    if (mat_2) mat_free(&mat_2);
+    if (dst) mat_free(&dst);
+    if (py_mat_1) Py_DECREF(py_mat_1);
+    if (py_mat_2) Py_DECREF(py_mat_2);
+    return py_dst;
+}
+
+#endif
+
 
 static PyMethodDef spkmeansmoduleMethods[] = {
     {"test_read_data", 
@@ -484,6 +614,28 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) full_calc_k,
       METH_VARARGS, 
       PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+    #ifdef FLAG_DEBUG
+    {"mat_cellwise_add",
+      (PyCFunction) wrap_mat_cellwise_add,
+      METH_VARARGS, 
+      PyDoc_STR("Adds (cellwise) two matrices together")},
+    {"mat_cellwise_sub",
+      (PyCFunction) wrap_mat_cellwise_sub,
+      METH_VARARGS, 
+      PyDoc_STR("Subtracts (cellwise) second matrix from first")},
+    {"mat_cellwise_mul",
+      (PyCFunction) wrap_mat_cellwise_mul,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates (cellwise) multiple of two matrices")},
+    {"mat_cellwise_div",
+      (PyCFunction) wrap_mat_cellwise_div,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates (cellwise) division of two matrices")},
+    {"matmul",
+      (PyCFunction) wrap_matmul,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates multiple of two matrices")},
+    #endif
     {NULL, NULL, 0, NULL}
 };
 
