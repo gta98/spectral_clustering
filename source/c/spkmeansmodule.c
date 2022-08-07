@@ -727,7 +727,7 @@ static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
     }
     py_eigenvalues = NULL;
 
-    mat_eigenvalues = mat_init_full(mat_eigenvalues_flat->h, mat_eigenvalues_flat->w, 0);
+    mat_eigenvalues = mat_init_full(mat_eigenvalues_flat->w, mat_eigenvalues_flat->w, 0);
     if (!mat_eigenvalues) {
         PyErr_SetString(PyExc_MemoryError, "Could not initialize mat_eigenvalues");
         goto wrap_mat_sort_cols_desc_finish;
@@ -739,9 +739,7 @@ static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
         goto wrap_mat_sort_cols_desc_finish;
     }
 
-    printd("Sukar 1\n");
-    result = SUCCESS; /*sort_cols_by_vector_desc(mat, mat_eigenvalues);*/
-    printd("Sukar 2\n");
+    result = sort_cols_by_vector_desc(mat, mat_eigenvalues);
     if (result != SUCCESS) {
         PyErr_SetString(PyExc_MemoryError, "Could not convert reorder mat cols by eigenvalues");
         goto wrap_mat_sort_cols_desc_finish;

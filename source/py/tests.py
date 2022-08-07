@@ -155,13 +155,13 @@ class TestFit(unittest.TestCase):
         relative_error = relative_error_centroids(B, B_module)
         self.assertLess(relative_error, 1e-5)
     
-    @unittest.skip("LALALALALLA")
+    #@unittest.skip("LALALALALLA")
     def test_sort_cols_by_vector_desc(self):
         A = make_compatible_blob(14,44,offset=+1.0)
         indices = np.arange(44)
         np.random.shuffle(indices)
         indices = [int(x) for x in indices]
-        B = spkmeans_utils.sort_cols_by_vector_desc(A, indices)
+        B = spkmeans_utils.sort_cols_by_vector_desc(A, indices)[0]
         B_module = spkmeansmodule.sort_cols_by_vector_desc(A, indices)
         relative_error = relative_error_centroids(B, B_module)
         self.assertLess(relative_error, 1e-5)

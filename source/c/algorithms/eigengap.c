@@ -5,21 +5,36 @@ status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
     status_t status;
     uint* sorting_indices;
     uint n, i;
+
     assertd_is_square(A);
     assertd_same_dims(A, v);
 
+    sorting_indices = NULL;
+    eigenvalues = NULL;
     n = v->h;
+
     eigenvalues = malloc(sizeof(real)*n);
-    if (!eigenvalues) return ERROR_MALLOC;
+    if (!eigenvalues) {
+        status = ERROR_MALLOC;
+        goto sort_cols_by_vector_desc_finish;
+    }
     for (i=0; i<n; i++) eigenvalues[i] = mat_get(v,i,i);
+
     sorting_indices = argsort_desc(eigenvalues, n);
-    free(eigenvalues);
+    if (!sorting_indices) {
+        status = ERROR_MALLOC;
+        goto sort_cols_by_vector_desc_finish;
+    }
 
     status = reorder_mat_cols_by_indices(A, sorting_indices);
-    if (status != SUCCESS) return status;
+    if (status != SUCCESS) goto sort_cols_by_vector_desc_finish;
     status = reorder_mat_cols_by_indices(v, sorting_indices);
-    if (status != SUCCESS) return status;
-    return SUCCESS;
+    if (status != SUCCESS) goto sort_cols_by_vector_desc_finish;
+
+    sort_cols_by_vector_desc_finish:
+    if (sorting_indices) free(sorting_indices);
+    if (eigenvalues) free(eigenvalues);
+    return status;
 }
 
 uint calc_k(mat_t* eigenvalues) {

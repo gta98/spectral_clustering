@@ -263,6 +263,7 @@ status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices) {
     for (i=0; i<n; i++) indices_copy[i] = indices[i];
     for (i=0; i<n; i++) {
         while (indices_copy[i] != i) {
+            /*printd("Swapping cols, indices_copy[%d]=%d\n", i, indices_copy[i]);*/
             mat_swap_cols(v, i, indices_copy[i]);
             swap_uint(&(indices_copy[i]), &(indices_copy[indices_copy[i]]));
         }
