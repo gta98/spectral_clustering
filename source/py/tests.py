@@ -9,7 +9,7 @@ import numpy as np
 import sklearn.cluster
 import kmeans_pp
 import kmeans_sk
-from typing import List, Callable
+from typing import List, Callable, Tuple
 import math
 import time
 from sklearn.datasets import make_blobs
@@ -56,29 +56,51 @@ class TestFit(unittest.TestCase):
         os.system(f"rm {save_path}*")
         self.assertEqual(A_list, B_list)
     
-    def _test_nonsquare(self, name: str, ptr_py: Callable, ptr_c: Callable):
-        np.random.rand(1000)
-        datapoints = make_compatible_blob()
+    def _compare_c_and_py(self,
+            name: str,
+            datapoints: List[List[float]],
+            ptr_py: Callable, ptr_c: Callable,
+            ptr_comparator: Callable):
         #print()
         #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
-        result_c = ptr_c(datapoints)
         result_py = ptr_py(datapoints)
+        result_c = ptr_c(datapoints)
         #print()
         #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
+        ptr_comparator(name, result_py, result_c)
+    
+    def _comparator_mat(self, name: str, result_py: List[List[float]], result_c: List[List[float]]):
         dist = dist_between_centroid_lists(result_c, result_py)
         relative_error = relative_error_centroids(result_py, result_c)
         self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error")
         self.assertLess(relative_error, 1e-3, f"Failed test for {name}: relative error = {relative_error} is too high")
 
+    def _comparator_jacobi(self,
+            name: str,
+            result_py: Tuple[List[float], List[List[float]]], result_c: Tuple[List[float], List[List[float]]]):
+        vector_py, mat_py = result_py[0], result_py[1]
+        vector_c, mat_c = result_c[0], result_c[1]
+        vector_py, vector_c = np.array(vector_py), np.array(vector_c)
+        dist_vector = np.sqrt(np.sum(np.square(vector_py-vector_c)))
+        relative_error_vector = dist_vector/np.sqrt(np.sum(np.square(vector_py)))
+        self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error (eigenvalues)")
+        self.assertLess(relative_error_vector, 1e-3, f"Failed test for {name}: eigenvalues are too far apart")
+        relative_error = relative_error_centroids(mat_py, mat_c)
+        self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error")
+        self.assertLess(relative_error, 1e-3, f"Failed test for {name}: relative error = {relative_error} is too high")
+
+    def _comparator_calc_k(self, name: str, result_py: int, result_c: int):
+        self.assertEqual(result_c, result_py, f"Failed test for {name}: Calculated k's are not equal - k(py)={result_py}, k(c)={result_c}")
+
     def test_wam(self):
-        self._test_nonsquare('wam', spkmeans_utils.full_wam, spkmeansmodule.full_wam)
+        self._compare_c_and_py('wam', make_compatible_blob(), spkmeans_utils.full_wam, spkmeansmodule.full_wam, self._comparator_mat)
     
     def test_ddg(self):
-        self._test_nonsquare('ddg', spkmeans_utils.full_ddg, spkmeansmodule.full_ddg)
+        self._compare_c_and_py('ddg', make_compatible_blob(), spkmeans_utils.full_ddg, spkmeansmodule.full_ddg, self._comparator_mat)
     
     @unittest.skip("Does not work")
     def test_lnorm(self):
-        self._test_nonsquare('lnorm', spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm)
+        self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm, self._comparator_mat)
     
     def test_jacobi(self):
         pass
