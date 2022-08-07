@@ -108,10 +108,17 @@ void mat_copy_to(mat_t* dst, mat_t* src) {
 
 
 /* return a copy of mat */
-mat_t* mat_init_like(mat_t* mat) {
+mat_t* mat_init_copy(mat_t* mat) {
     mat_t* copy = mat_init(mat->h, mat->w);
     if (!copy) return NULL;
     mat_copy_to(copy, mat);
+    return copy;
+}
+
+/* return mat with same dims as mat */
+mat_t* mat_init_like(mat_t* mat) {
+    mat_t* copy = mat_init(mat->h, mat->w);
+    if (!copy) return NULL;
     return copy;
 }
 

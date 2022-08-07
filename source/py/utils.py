@@ -178,12 +178,9 @@ def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     rotations = 0
     while True:
         P = calc_P(A)
-        assertd(P.shape == A.shape)
-        rotations += 1
         V = V @ P
-        assertd(V.shape == A.shape)
         A_tag = V.transpose() @ A_original @ V
-        assertd(A_tag.shape == A.shape)
+        rotations += 1
         if is_jacobi_convergence(A_tag, A, rotations): break
         A = A_tag
     eigenvalues = A_tag.diagonal()

@@ -19,6 +19,9 @@ mat_t* mat_init(const uint h, const uint w);
 mat_t* mat_init_full(const uint h, const uint w, const real value);
 
 /* return a copy of mat */
+mat_t* mat_init_copy(mat_t* mat);
+
+/* return mat with same dims as mat */
 mat_t* mat_init_like(mat_t* mat);
 
 /* initialize mat(n,n) with zeros, fill diagonal with 1 */
