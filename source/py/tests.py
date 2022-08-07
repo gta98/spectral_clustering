@@ -9,7 +9,7 @@ import numpy as np
 import sklearn.cluster
 import kmeans_pp
 import kmeans_sk
-from typing import List
+from typing import List, Callable
 import math
 import time
 from sklearn.datasets import make_blobs
@@ -24,8 +24,21 @@ def make_compatible_blob(n=100,d=10) -> List[List[float]]:
     x: np.ndarray
     return [list(y) for y in list(x)]
 
+def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
+    a = np.random.rand(n,n)
+    bottom_left = np.tril(a)
+    top_right = np.tril(a,-1).T
+    m = bottom_left + top_right
+    return [list(y) for y in list(m)]
+
 
 class TestFit(unittest.TestCase):
+
+    def test_make_compatible_blob_symmetric(self):
+        x = make_compatible_blob_symmetric(100)
+        for i in range(100):
+            for j in range(100):
+                self.assertEqual(x[i][j], x[j][i])
 
     @unittest.skip("This is no longer relevant")
     def test_numpy_to_numpy(self):
@@ -40,21 +53,35 @@ class TestFit(unittest.TestCase):
         #print(A_list)
         B_list = spkmeans_utils.numpy_to_numpy(A_list, save_path)
         B_list = [[round(y,4) for y in x] for x in B_list]
-        #os.system(f"rm {save_path}")
+        os.system(f"rm {save_path}*")
         self.assertEqual(A_list, B_list)
     
-    def test_wam(self):
+    def _test_nonsquare(self, name: str, ptr_py: Callable, ptr_c: Callable):
         np.random.rand(1000)
         datapoints = make_compatible_blob()
         #print()
         #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
-        result_c = spkmeansmodule.full_wam(datapoints)
-        result_py = spkmeans_utils.full_wam(datapoints)
+        result_c = ptr_c(datapoints)
+        result_py = ptr_py(datapoints)
         #print()
         #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
         dist = dist_between_centroid_lists(result_c, result_py)
         relative_error = relative_error_centroids(result_py, result_c)
-        self.assertLess(relative_error, 1e-3)
+        self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error")
+        self.assertLess(relative_error, 1e-3, f"Failed test for {name}: relative error = {relative_error} is too high")
+
+    def test_wam(self):
+        self._test_nonsquare('wam', spkmeans_utils.full_wam, spkmeansmodule.full_wam)
+    
+    def test_ddg(self):
+        self._test_nonsquare('ddg', spkmeans_utils.full_ddg, spkmeansmodule.full_ddg)
+    
+    @unittest.skip("Does not work")
+    def test_lnorm(self):
+        self._test_nonsquare('lnorm', spkmeans_utils.full_lnorm, spkmeansmodule.full_lnorm)
+    
+    def test_jacobi(self):
+        pass
 
     @unittest.skip("Disable if too heavy")
     def test_c_and_sklearn_over_and_over(self):
