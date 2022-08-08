@@ -262,21 +262,20 @@ void mat_normalize_rows(mat_t* dst, mat_t* src) {
 }
 
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices) {
-    uint i;
-    uint n;
-    uint* indices_copy;
-    n = v->w;
-    indices_copy = malloc(sizeof(uint)*n);
-    if (!indices_copy) return ERROR_MALLOC;
-    for (i=0; i<n; i++) indices_copy[i] = indices[i];
-    for (i=0; i<n; i++) {
-        while (indices_copy[i] != i) {
-            /*printd("Swapping cols, indices_copy[%d]=%d\n", i, indices_copy[i]);*/
-            mat_swap_cols(v, i, indices_copy[i]);
-            swap_uint(&(indices_copy[i]), &(indices_copy[indices_copy[i]]));
+    uint i,j;
+    mat_t* tmp;
+    tmp = mat_init_like(v);
+    if (!tmp) return ERROR_MALLOC;
+
+    for (j=0; j<tmp->w; j++) {
+        for (i=0; i<tmp->h; i++) {
+            mat_set(tmp, i, j, mat_get(v, i, indices[j]));
         }
     }
-    free(indices_copy);
+
+    mat_copy_to(v, tmp);
+    mat_free(&tmp);
+    
     return SUCCESS;
 }
 

@@ -75,7 +75,7 @@ static PyObject* full_lnorm(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_jacobi(PyObject* self, PyObject* args) {
+static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     PyObject* py_data;
     PyObject* py_result_vectors;
     PyObject* py_result_values;
@@ -83,6 +83,7 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
     mat_t* data;
     mat_t* result_vectors;
     mat_t* result_values;
+    status_t status;
 
     py_data = NULL;
     py_result_vectors = NULL;
@@ -103,10 +104,18 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
 
     result_vectors = NULL, result_values = NULL;
     calc_full_jacobi(data, &result_vectors, &result_values);
+    if (!result_vectors || !result_values) goto jacobi_failed_main;
     /*printd("======Hola===========\n");
-    mat_print(result_values);
-    mat_free(&data);*/
+    mat_print(result_values);*/
+    mat_free(&data);
     data = NULL;
+
+    if (sort) {
+        printd("about to sort: ");
+        mat_print_diagonal(result_values);
+        status = sort_cols_by_vector_desc(result_vectors, result_values);
+        if (status != SUCCESS) goto jacobi_failed_sort;
+    }
 
     py_result_vectors = Mat_to_PyListListFloat(result_vectors);
     if (!py_result_vectors) goto set_tuple_failed_malloc;
@@ -131,6 +140,10 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
 
     return py_result_tuple;
 
+    jacobi_failed_main:
+    goto free_vectors_values_failure;
+    jacobi_failed_sort:
+    goto free_vectors_values_failure;
     set_tuple_failed_parse:
     py_result_tuple = PyErr_Occurred();
     goto free_vectors_values_failure;
@@ -145,63 +158,12 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
     return py_result_tuple;
 }
 
+static PyObject* full_jacobi(PyObject* self, PyObject* args) {
+    return _full_jacobi(self, args, false);
+}
+
 static PyObject* full_jacobi_sorted(PyObject* self, PyObject* args) {
-    PyObject* py_data;
-    PyObject* py_result_vectors;
-    PyObject* py_result_values;
-    PyObject* py_result_tuple;
-    mat_t* data;
-    mat_t* result_vectors;
-    mat_t* result_values;
-    status_t status;
-
-    py_data = NULL;
-    py_result_vectors = NULL;
-    py_result_values = NULL;
-    py_result_tuple = NULL;
-    data = NULL;
-    result_vectors = NULL;
-    result_values = NULL;
-
-    if (!PyArg_ParseTuple(args, "O", &data)) {
-        return NULL;
-    }
-
-    data = PyListListFloat_to_Mat(py_data);
-    if (data == NULL) return NULL;
-
-    result_vectors = NULL, result_values = NULL;
-    calc_full_jacobi(data, &result_vectors, &result_values);
-    mat_free(&data);
-    data = NULL;
-
-    status = sort_cols_by_vector_desc(result_vectors, result_values);
-    if (status != SUCCESS) goto free_vectors_values_failure_2;
-
-    py_result_vectors = Mat_to_PyListListFloat(result_vectors);
-    if (!py_result_vectors) goto free_vectors_values_failure_2;
-    mat_free(&result_vectors);
-    result_vectors = NULL;
-
-    py_result_values = MatDiag_to_PyListFloat(result_values); /* FIXME */
-    if (!py_result_values) goto free_vectors_values_failure_2;
-    mat_free(&result_values);
-    result_values = NULL;
-
-    py_result_tuple = PyList_New(2);
-    if (!py_result_tuple) goto free_vectors_values_failure_2;
-
-    PyList_SetItem(py_result_tuple, 0, py_result_values);
-    PyList_SetItem(py_result_tuple, 1, py_result_vectors);
-
-    return py_result_tuple;
-
-    free_vectors_values_failure_2:
-    if (result_vectors) mat_free(&result_vectors);
-    if (result_values) mat_free(&result_values);
-    if (py_result_vectors) Py_DECREF(py_result_vectors);
-    if (py_result_values) Py_DECREF(py_result_values);
-    return NULL;
+    return _full_jacobi(self, args, true);
 }
 
 static PyObject* normalize_matrix_by_rows(PyObject* self, PyObject* args) {
@@ -885,18 +847,18 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) full_jacobi,
       METH_VARARGS, 
       PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
-    {"full_jacobi_sorted", /* FIXME - PyDocs */
+    {"full_jacobi_sorted",
       (PyCFunction) full_jacobi_sorted,
       METH_VARARGS, 
-      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
-    {"normalize_matrix_by_rows", /* FIXME - PyDocs */
+      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors (sorted)")},
+    {"normalize_matrix_by_rows",
       (PyCFunction) normalize_matrix_by_rows,
       METH_VARARGS, 
-      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
-    {"full_calc_k", /* FIXME - PyDocs */
+      PyDoc_STR("As the name states, normalizes the given matrix by rows, returns new matrix")},
+    {"full_calc_k",
       (PyCFunction) full_calc_k,
       METH_VARARGS, 
-      PyDoc_STR("Performs Jacobi algorithm on datapoints, returns tuple containing eigenvalues, eigenvectors")},
+      PyDoc_STR("Given eigenvalues, determines k according to eigengap heuristic")},
 #ifdef FLAG_DEBUG
     {"mat_cellwise_add",
       (PyCFunction) wrap_mat_cellwise_add,

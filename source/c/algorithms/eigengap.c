@@ -20,15 +20,43 @@ status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
     }
     for (i=0; i<n; i++) eigenvalues[i] = mat_get(v,i,i);
 
-    sorting_indices = argsort_desc(eigenvalues, n);
+    sorting_indices = argsort(eigenvalues, n);
     if (!sorting_indices) {
         status = ERROR_MALLOC;
         goto sort_cols_by_vector_desc_finish;
     }
+    /*printd("sorting indices: ");
+    for (i=0; i<n; i++) {
+        printd("%d, ", sorting_indices[i]);
+    }
+    printd("\n");*/
+
+    /* before reordering eigenvalues:
+    ** v'[*,i] will get v[*, sorting_indices[i]]
+    ** we wanna make sure v'[i,i] = eigenval
+    ** meaning v[i, sorting_indices[i]] = v[sorting_indices[i],sorting_indices[i]]
+    */
+    /*printd("lala 1:\n");
+    mat_print(v);*/
+    for (i=0; i<n; i++) {
+        mat_set(v, i, sorting_indices[i],
+                mat_get(v, sorting_indices[i], sorting_indices[i]));
+    }
+    /*printd("\n");
+    printd("lala 2:\n");
+    mat_print(v);*/
+
+    status = reorder_mat_cols_by_indices(v, sorting_indices);
+    if (status != SUCCESS) goto sort_cols_by_vector_desc_finish;
+
+    /*printd("lala 3:\n");
+    mat_print(v);
+
+    printd("HOLD THE LINE!");
+    mat_print_diagonal(v);
+    printd("\nLove isnt always on time\n");*/
 
     status = reorder_mat_cols_by_indices(A, sorting_indices);
-    if (status != SUCCESS) goto sort_cols_by_vector_desc_finish;
-    status = reorder_mat_cols_by_indices(v, sorting_indices);
     if (status != SUCCESS) goto sort_cols_by_vector_desc_finish;
 
     sort_cols_by_vector_desc_finish:

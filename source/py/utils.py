@@ -317,9 +317,13 @@ def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[f
     return eigenvalues, eigenvectors
 
 
-def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
+def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
     datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
+    print(f"py eigenvalues: {eigenvalues}")
+    eigenvectors, eigenvalues = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
+    print(f"py eigenvalues (sorted): {eigenvalues}")
+    print(eigenvectors)
     eigenvalues = [float(x) for x in eigenvalues]
-    eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
+    #eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors

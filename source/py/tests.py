@@ -197,6 +197,14 @@ class TestFit(unittest.TestCase):
     def test_jacobi(self):
         self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(10),
             spkmeans_utils.full_jacobi, spkmeansmodule.full_jacobi, self._comparator_jacobi)
+
+    def test_jacobi_sorted(self):
+        X = make_compatible_blob_symmetric(10)
+        c_val, c_vec = spkmeansmodule.full_jacobi_sorted(X)
+        print(f"c eigenvalues: {c_val}")
+        py_val, py_vec = spkmeans_utils.full_jacobi_sorted(X)
+        #self._compare_c_and_py('jacobi_sorted', make_compatible_blob_symmetric(10),
+        #    spkmeans_utils.full_jacobi_sorted, spkmeansmodule.full_jacobi_sorted, self._comparator_jacobi)
     
     def test_PTAP(self):
         n = 20
