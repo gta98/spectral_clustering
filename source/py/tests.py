@@ -18,6 +18,8 @@ import utils as spkmeans_utils
 import re
 import os
 
+ROUNDING_DIGITS = 4
+
 
 def make_compatible_blob(n=100,d=10, offset=0) -> List[List[float]]:
     x, _ = make_blobs(n_samples=n, n_features=d)
@@ -101,16 +103,13 @@ class TestAgainstData(unittest.TestCase):
         relative_error = relative_error_centroids(self.D, D)
         self.assertLess(relative_error, 1e-3, f"test_ddg: Relative error is too high - {relative_error}")
 
-    @unittest.skip("Very low error for eigenvalues, HIGH ERROR (0.1, 10%) for eigenVECTORS")
+    #@unittest.skip("Very low error for eigenvalues, HIGH ERROR (0.1, 10%) for eigenVECTORS")
     def test_jacobi_template(self):
         D_pow_minus_half = np.array(self.D_pow_minus_half)
         W = np.array(self.W)
-        #lnorm = np.identity(len(self.W)) - (D_pow_minus_half@W@D_pow_minus_half)
-        #lnorm = [[y for y in x] for x in lnorm]
-        lnorm = spkmeansmodule.test_calc_L_norm(self.W, self.D_pow_minus_half)
-        #lnorm = spkmeans_utils.calc_L_norm(self.W, self.D_pow_minus_half)
+        lnorm = spkmeansmodule.full_lnorm(self.X)
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi(lnorm)
-        eigenvalues = [round(x,4) for x in eigenvalues]
+        eigenvalues = [round(x,ROUNDING_DIGITS) for x in eigenvalues]
         relative_error_eigenvalues = relative_error_vectors(self.eigenvalues, eigenvalues)
         relative_error_eigenvectors = relative_error_colwise_mean(self.eigenvectors, eigenvectors)
         self.assertLess(relative_error_eigenvalues, 1e-3, f"test_jacobi_template: Eigenvalues relative error is too high - \nGot: {eigenvalues}\nReal: {self.eigenvalues}")
@@ -129,7 +128,7 @@ class TestFit(unittest.TestCase):
     def test_numpy_to_numpy(self):
         # this tests: read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
         n, d = 100, 10
-        A = np.round(np.random.rand(n*d)*10,4).reshape((n,d))
+        A = np.round(np.random.rand(n*d)*10,ROUNDING_DIGITS).reshape((n,d))
         A_list = [[float(y) for y in x] for x in A]
         save_path = "./tmp_mat.txt"
         with open(f'{save_path}.orig', 'w') as f:
@@ -137,7 +136,7 @@ class TestFit(unittest.TestCase):
                 f.write(','.join([str(x) for x in line]) + '\n')
         #print(A_list)
         B_list = spkmeans_utils.numpy_to_numpy(A_list, save_path)
-        B_list = [[round(y,4) for y in x] for x in B_list]
+        B_list = [[round(y,ROUNDING_DIGITS) for y in x] for x in B_list]
         os.system(f"rm {save_path}*")
         self.assertEqual(A_list, B_list)
     
@@ -147,11 +146,11 @@ class TestFit(unittest.TestCase):
             ptr_py: Callable, ptr_c: Callable,
             ptr_comparator: Callable):
         #print()
-        #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in datapoints]))
+        #print('\n'.join([','.join([str(round(y,ROUNDING_DIGITS)) for y in x]) for x in datapoints]))
         result_py = ptr_py(datapoints)
         result_c = ptr_c(datapoints)
         #print()
-        #print('\n'.join([','.join([str(round(y,4)) for y in x]) for x in result_py]))
+        #print('\n'.join([','.join([str(round(y,ROUNDING_DIGITS)) for y in x]) for x in result_py]))
         ptr_comparator(name, result_py, result_c)
     
     def _comparator_mat(self, name: str, result_py: List[List[float]], result_c: List[List[float]]):
@@ -386,23 +385,23 @@ def dist_between_centroid_lists(list_1: np.ndarray, list_2: np.ndarray) -> float
     if type(list_1) == list and type(list_2) == list:
         list_1 = np.array(list_1)
         list_2 = np.array(list_2)
-    list_1 = np.around(list_1, 4)
-    list_2 = np.around(list_2, 4)
+    list_1 = np.around(list_1, ROUNDING_DIGITS)
+    list_2 = np.around(list_2, ROUNDING_DIGITS)
     return np.linalg.norm((list_1)-(list_2))
 
 def relative_error_centroids(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
-    centroids_real_round = [[round(y,4) for y in x] for x in centroids_real]
-    centroids_calc_round = [[round(y,4) for y in x] for x in centroids_calc]
+    centroids_real_round = [[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_real]
+    centroids_calc_round = [[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_calc]
     return np.linalg.norm(np.sort(centroids_real_round)-np.sort(centroids_calc_round))/np.linalg.norm(centroids_real_round)
 
 def relative_error_matrices(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
-    real = np.array([[round(y,4) for y in x] for x in centroids_real])
-    calc = np.array([[round(y,4) for y in x] for x in centroids_calc])
+    real = np.array([[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_real])
+    calc = np.array([[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_calc])
     return np.mean((np.abs(calc-real)/np.abs(real)), axis=None)
 
 def relative_error_vectors(vector_real: List[float], vector_calc: List[float]) -> float:
     vector_real, vector_calc = np.array(vector_real), np.array(vector_calc)
-    vector_real, vector_calc = np.round(vector_real,4), np.round(vector_calc,4)
+    vector_real, vector_calc = np.round(vector_real,ROUNDING_DIGITS), np.round(vector_calc,ROUNDING_DIGITS)
     dist = np.sqrt(np.sum(np.square(vector_real-vector_calc)))
     relative_error = dist / np.sqrt(np.sum(np.square(vector_real)))
     return relative_error
@@ -410,7 +409,7 @@ def relative_error_vectors(vector_real: List[float], vector_calc: List[float]) -
 def relative_error_colwise_mean(eigenvectors_real: List[List[float]], eigenvectors_calc: List[List[float]]) -> float:
     # each column is an eigenvector
     eigenvectors_real, eigenvectors_calc = np.array(eigenvectors_real), np.array(eigenvectors_calc)
-    eigenvectors_real, eigenvectors_calc = np.round(eigenvectors_real,4), np.round(eigenvectors_calc,4)
+    eigenvectors_real, eigenvectors_calc = np.round(eigenvectors_real,ROUNDING_DIGITS), np.round(eigenvectors_calc,ROUNDING_DIGITS)
     dist_weight = np.sqrt(np.sum(np.square(eigenvectors_real-eigenvectors_calc), axis=0)) # each column is an eigenvector
     real_weight = np.sqrt(np.sum(np.square(eigenvectors_real), axis=0))
     relative_error_vector = dist_weight/real_weight # entry i == relative error of vector i

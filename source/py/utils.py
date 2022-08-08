@@ -109,6 +109,29 @@ def calc_wam(datapoints: np.ndarray) -> np.ndarray:
     W = W_with_diagonal - np.diag(W_with_diagonal.diagonal())
     return W
 
+# simple edition
+@wrap__ndarray_to_list_of_lists
+def calc_wam_2(datapoints: np.ndarray) -> np.ndarray:
+    # returns weighted adjacency matrix
+    import math
+    assertd(datapoints.ndim == 2)
+    n, d = datapoints.shape
+    W = np.zeros((n,n))
+    for i in range(n):
+        x_i = datapoints[i,:]
+        for j in range(n):
+            x_j = datapoints[j,:]
+            wij = 0
+            for k in range(d):
+                wij += round((x_i[k] - x_j[k])**2,3)
+            wij = round(math.sqrt(wij),3)
+            wij = round(wij*(-0.5),3)
+            wij = round(math.exp(wij),3)
+            W[i,j] = round(wij,3)
+    for i in range(n):
+        W[i,i] = 0
+    return W
+
 
 @wrap__ndarray_to_list_of_lists
 def calc_ddg(W: np.ndarray) -> np.ndarray:
