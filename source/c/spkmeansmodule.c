@@ -589,9 +589,6 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
 
     if (mat_1->w != mat_2->h) goto wrap_matmul_diff_dims;
 
-    dst = mat_init(mat_1->h, mat_1->w);
-    if (!dst) goto wrap_matmul_no_memory;
-
     mat_transpose(mat_1); mat_transpose(mat_2);
     dst = matmul(mat_2, mat_1);
     if (!dst) goto wrap_matmul_no_memory;
@@ -613,6 +610,70 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
     wrap_matmul_finish:
     if (mat_1) mat_free(&mat_1);
     if (mat_2) mat_free(&mat_2);
+    if (dst) mat_free(&dst);
+    return py_dst;
+}
+
+static PyObject* test_PTAP(PyObject* self, PyObject* mat_tuple) {
+    PyObject* py_A;
+    PyObject* py_P;
+    mat_t* A;
+    mat_t* P;
+    mat_t* dst;
+    mat_t* tmp;
+    PyObject* py_dst;
+
+    py_A = NULL;
+    py_P = NULL;
+    A = NULL;
+    P = NULL;
+    dst = NULL;
+    py_dst = NULL;
+    tmp = NULL;
+
+    if (!PyArg_ParseTuple(mat_tuple, "OO", &py_A, &py_P)) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse arguments - expected 2 matrices - A, P");
+        return NULL;
+    }
+
+    A = PyListListFloat_to_Mat(py_A);
+    if (!A) goto wrap_PTAP_test_no_memory;
+    py_A = NULL;
+
+    P = PyListListFloat_to_Mat(py_P);
+    if (!P) goto wrap_PTAP_test_no_memory;
+    py_P = NULL;
+
+    if (A->w != P->h) goto wrap_PTAP_test_diff_dims;
+
+    dst = mat_init(A->h, A->w);
+    if (!dst) goto wrap_PTAP_test_no_memory;
+
+    tmp = mat_init(A->h, A->w);
+    if (!tmp) goto wrap_PTAP_test_no_memory;
+
+    mat_transpose(P);
+    mat_mul(tmp, P, A); /* dst = P.transpose @ A */
+    mat_transpose(P);
+    mat_mul(dst, tmp, P); /* dst = dst @ P = P.transpose @ A @ P */
+
+    py_dst = Mat_to_PyListListFloat(dst);
+    if (!py_dst) goto wrap_PTAP_test_no_memory;
+
+    goto wrap_PTAP_test_finish;
+
+    wrap_PTAP_test_no_memory:
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
+    goto wrap_PTAP_test_finish;
+
+    wrap_PTAP_test_diff_dims:
+    PyErr_SetString(PyExc_ValueError, "Matrices dimensions should match!");
+    goto wrap_PTAP_test_finish;
+
+    wrap_PTAP_test_finish:
+    if (A) mat_free(&A);
+    if (P) mat_free(&P);
+    if (tmp) mat_free(&tmp);
     if (dst) mat_free(&dst);
     return py_dst;
 }
@@ -827,6 +888,10 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) wrap_sort_cols_by_vector_desc,
       METH_VARARGS, 
       PyDoc_STR("Sorts matrix (arg 1) by cols, according to vector (arg 2) sorting")},
+    {"test_PTAP",
+      (PyCFunction) test_PTAP,
+      METH_VARARGS, 
+      PyDoc_STR("Returns P.transpose @ A @ P, where A == arg1, P == arg2")},
 #endif
     {NULL, NULL, 0, NULL}
 };

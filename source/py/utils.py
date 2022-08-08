@@ -1,4 +1,5 @@
 
+from cmath import inf
 from ctypes.wintypes import DWORD
 from typing import List, Tuple, NoReturn, Union
 import numpy as np
@@ -12,6 +13,7 @@ def assertd(condition:bool) -> Union[None, NoReturn]:
     assert(condition)
 
 def sign(num: int) -> int:
+    assertd(num != np.nan)
     if num == 0:
         return 1
     else:
@@ -129,6 +131,8 @@ def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
 def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     assertd(A.ndim==2)
     P = identity_matrix_like(A)
+    #print(f"i, j are {i},{j} and A[i,j]={A[i,j]}")
+    #print(A)
     theta = (A[j,j] - A[i,i]) / (2*A[i,j])
     t = sign(theta) / (np.abs(theta) + np.sqrt(1 + (theta**2)))
     c = 1 / np.sqrt(1 + (t**2))
@@ -141,14 +145,23 @@ def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
 
 @wrap__ndarray_to_list_of_lists
 def get_indices_of_max_element(A: np.ndarray) -> Tuple:
-    return np.unravel_index(np.argmax(A, axis=None), A.shape)
+    i, j = -1, -1
+    max_val = -1*inf
+    for k in range(A.shape[0]):
+        for l in range(A.shape[1]):
+            if k==l: continue
+            val = A[k,l]
+            if val < 0: val *= -1
+            if val > max_val:
+                i, j = k, l
+                max_val = val
+    return i, j
 
 
 @wrap__ndarray_to_list_of_lists
 def calc_P(A: np.ndarray) -> np.ndarray:
     assertd(A.ndim==2)
-    A_abs = np.abs(A)
-    largest_abs_element_location: Tuple = get_indices_of_max_element(A_abs)
+    largest_abs_element_location: Tuple = get_indices_of_max_element(A)
     assertd(len(largest_abs_element_location) == 2)
     P = calc_P_ij(A, *largest_abs_element_location)
     return P
@@ -168,7 +181,7 @@ def calc_dist_between_offs(A_tag: np.ndarray, A: np.ndarray) -> float:
 def is_jacobi_convergence(A_tag: np.ndarray, A: np.ndarray, rotations: int) -> bool:
     dist_between_offs = calc_dist_between_offs(A_tag, A)
     assertd(dist_between_offs >= 0) # see forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=125232
-    return (dist_between_offs <= JACOBI_EPSILON) or (rotations == JACOBI_MAX_ROTATIONS)
+    return (dist_between_offs <= JACOBI_EPSILON) or (rotations >= JACOBI_MAX_ROTATIONS)
 
 #@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
