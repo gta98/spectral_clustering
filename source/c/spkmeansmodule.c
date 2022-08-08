@@ -92,7 +92,7 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
     result_vectors = NULL;
     result_values = NULL;
 
-    printd("======EEEEEE===========\n");
+    /*printd("======EEEEEE===========\n");*/
 
     if (!PyArg_ParseTuple(args, "O", &py_data)) {
         goto set_tuple_failed_parse;
@@ -103,31 +103,31 @@ static PyObject* full_jacobi(PyObject* self, PyObject* args) {
 
     result_vectors = NULL, result_values = NULL;
     calc_full_jacobi(data, &result_vectors, &result_values);
-    printd("======Hola===========\n");
+    /*printd("======Hola===========\n");
     mat_print(result_values);
-    mat_free(&data);
+    mat_free(&data);*/
     data = NULL;
 
     py_result_vectors = Mat_to_PyListListFloat(result_vectors);
     if (!py_result_vectors) goto set_tuple_failed_malloc;
-    printd("======Hola 1===========\n");
+    /*printd("======Hola 1===========\n");*/
     mat_free(&result_vectors);
     result_vectors = NULL;
 
     py_result_values = MatDiag_to_PyListFloat(result_values); /* FIXME */
     if (!py_result_values) goto set_tuple_failed_malloc;
-    printd("======Hola 2===========\n");
+    /*printd("======Hola 2===========\n");*/
     mat_free(&result_values);
     result_values = NULL;
 
     py_result_tuple = PyList_New(2);
     if (!py_result_tuple) goto set_tuple_failed_malloc;
-    printd("======Hola 3===========\n");
+    /*printd("======Hola 3===========\n");*/
 
     PyList_SetItem(py_result_tuple, 0, py_result_values);
-    printd("======Hola 4===========\n");
+    /*printd("======Hola 4===========\n");*/
     PyList_SetItem(py_result_tuple, 1, py_result_vectors);
-    printd("======Hola 5===========\n");
+    /*printd("======Hola 5===========\n");*/
 
     return py_result_tuple;
 

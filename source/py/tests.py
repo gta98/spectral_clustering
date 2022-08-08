@@ -164,11 +164,11 @@ class TestFit(unittest.TestCase):
             result_py: Tuple[List[float], List[List[float]]], result_c: Tuple[List[float], List[List[float]]]):
         vector_py, mat_py = result_py[0], result_py[1]
         vector_c, mat_c = result_c[0], result_c[1]
-        print("jacobi comparator started")
-        print(vector_py)
-        print(vector_c)
-        print(mat_py)
-        print(mat_c)
+        #print("jacobi comparator started")
+        #print(vector_py)
+        #print(vector_c)
+        #print(mat_py)
+        #print(mat_c)
         vector_py, vector_c = np.array(vector_py), np.array(vector_c)
         dist_vector = np.sqrt(np.sum(np.square(vector_py-vector_c)))
         relative_error_vector = dist_vector/np.sqrt(np.sum(np.square(vector_py)))
