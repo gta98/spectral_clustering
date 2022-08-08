@@ -283,9 +283,7 @@ def numpy_to_numpy(datapoints: np.ndarray, save_path: str) -> np.ndarray:
     # if this works, we confirm read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
     import spkmeansmodule
     datapoints = [list(x) for x in datapoints] # 1
-    print("blargh")
     spkmeansmodule.test_write_data(datapoints, save_path) # 2, 3, 4
-    print("bloorgh")
     datapoints_tag = spkmeansmodule.test_read_data(save_path) # 5, 6, 7
     #datapoints_tag = datapoints
     return datapoints_tag # 8
@@ -320,10 +318,10 @@ def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[f
 def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
     datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
-    print(f"py eigenvalues: {eigenvalues}")
+    #print(f"py eigenvalues: {eigenvalues}")
     eigenvectors, eigenvalues = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
-    print(f"py eigenvalues (sorted): {eigenvalues}")
-    print(eigenvectors)
+    #print(f"py eigenvalues (sorted): {eigenvalues}")
+    #print(eigenvectors)
     eigenvalues = [float(x) for x in eigenvalues]
     #eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors

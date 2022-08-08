@@ -111,8 +111,8 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     data = NULL;
 
     if (sort) {
-        printd("about to sort: ");
-        mat_print_diagonal(result_values);
+        /*printd("about to sort: ");
+        mat_print_diagonal(result_values);*/
         status = sort_cols_by_vector_desc(result_vectors, result_values);
         if (status != SUCCESS) goto jacobi_failed_sort;
     }
@@ -429,12 +429,10 @@ static PyObject* test_write_data(PyObject* self, PyObject* args) {
 
     mat = PyListListFloat_to_Mat(py_mat);
     if (!mat) return PyErr_NoMemory();
-    printd("converted mat\n");
+
     /* explicit casting to discard const safely */
     path = (char*) PyUnicode_AsUTF8(py_path);
 
-    printd("wrooooot\n");
-    printd("pooth is %s\n", path);
     result = write_data(mat, path);
     Py_DECREF(py_path);
 

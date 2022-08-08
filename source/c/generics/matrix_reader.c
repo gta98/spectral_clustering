@@ -353,7 +353,6 @@ status_t read_data(mat_t** dst, char* path_to_input) {
         fclose(fh);
         return ERROR_FORMAT; /* FIXME - does this yield "generic" or "invalid"? */
     }
-    printd("creating mat with h=%d, w=%d\n", h, w);
 
     x = mat_init(h, w);
     if (!x) {
@@ -385,17 +384,13 @@ status_t write_data(mat_t* src, char* path_to_output) {
     int i, j, h, w;
     FILE* fh;
 
-    printd("tryina open %s\n", path_to_output);
     fh = fopen(path_to_output, "wb");
     if (!fh) printd("cannot open\n");
     if (!fh) return ERROR_FOPEN;
-    printd("can open\n");
-    printd("mat dims are %d\n", src->w);
 
     /* we assume that every line gets the same number of commas */
     w = src->w;
     h = src->h;
-    printd("blon blon\n");
 
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {

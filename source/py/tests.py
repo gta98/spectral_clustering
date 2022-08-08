@@ -124,7 +124,7 @@ class TestFit(unittest.TestCase):
             for j in range(100):
                 self.assertEqual(x[i][j], x[j][i])
 
-    @unittest.skip("This is no longer relevant")
+    #@unittest.skip("This is no longer relevant")
     def test_numpy_to_numpy(self):
         # this tests: read_data, Mat_to_PyListListFloat, PyListListFloat_to_Mat, wrap__ndarray_to_list_of_lists
         n, d = 100, 10
@@ -201,7 +201,7 @@ class TestFit(unittest.TestCase):
     def test_jacobi_sorted(self):
         X = make_compatible_blob_symmetric(10)
         c_val, c_vec = spkmeansmodule.full_jacobi_sorted(X)
-        print(f"c eigenvalues: {c_val}")
+        #print(f"c eigenvalues: {c_val}")
         py_val, py_vec = spkmeans_utils.full_jacobi_sorted(X)
         #self._compare_c_and_py('jacobi_sorted', make_compatible_blob_symmetric(10),
         #    spkmeans_utils.full_jacobi_sorted, spkmeansmodule.full_jacobi_sorted, self._comparator_jacobi)
@@ -267,78 +267,6 @@ class TestFit(unittest.TestCase):
         B_module = spkmeansmodule.sort_cols_by_vector_desc(A, indices)
         relative_error = relative_error_centroids(B, B_module)
         self.assertLess(relative_error, 1e-5)
-
-    @unittest.skip("Disable if too heavy")
-    def test_c_and_sklearn_over_and_over(self):
-        make_blobs()
-        np.random.seed(0)
-        for i in range(100):
-            self.test_c_and_sklearn_equal()
-            #self.test_py_and_mine_equal()
-            pass
-
-    @unittest.skip("We only care about correctness for now")
-    def test_my_py_runtime_vs_sklearn(self):
-        print("test_my_py_runtime_vs_sklearn() - START")
-        for i in range(1000):
-            np.random.seed(i)
-            #print(f"hai {i}")
-            fit_params = list(randomize_fit_params(k=1000, max_iter=1000, eps=None, point_count=150, dims_count=7))
-            time_1, time_2, time_3 = time.time(), time.time(), time.time()
-            time_1 = time.time()
-            centroids_list_py = kmeans_pp.KmeansAlgorithm(*fit_params)
-            time_2 = time.time()
-            centroids_list_sk = kmeans_sk.KmeansAlgorithm(*fit_params)
-            time_3 = time.time()
-            delta_py = time_2-time_1
-            delta_sk = time_3-time_2
-            relative_sk_py = relative_error_centroids(centroids_list_sk, centroids_list_py)
-            #print(f"delta_py/delta_sk={delta_py/delta_sk}")
-            print(f"relative err = {relative_sk_py}")
-            pass
-        print("test_my_py_runtime_vs_sklearn() - END")
-
-
-    @unittest.skip("Only needed once in a while")
-    def test_equal_to_templates(self):
-        def test_equal_to_template_idx(*args):
-            print(f"test_equal_to_template_idx{args} - start")
-            with patch('sys.argv', ["python3","blah.py"]+list([str(x) for x in args])):
-                fit_params = list(kmeans_pp.extract_fit_params())
-                initial_centroids_list = fit_params[0]
-
-                centroids_list_desired = None
-                file_expected = args[-1].replace("input","output")
-                file_expected = re.sub('_db_\d', '', file_expected)
-                with open(file_expected, 'r') as f:
-                    s = f.read().split("\n")[:-1]
-                    s = [x.split(",") for x in s]
-                    s[0] = [int(y) for y in s[0]]
-                    initial_centroids_list_desired = s[0]
-                    centroids_list_desired = np.array([[float(y) for y in x] for x in s[1:]])
-
-                self.assertTrue(np.all(np.array(initial_centroids_list)==np.array(initial_centroids_list_desired)))
-
-                centroids_list_py = kmeans_pp.KmeansAlgorithm(*fit_params)
-                centroids_list_sk = kmeans_sk.KmeansAlgorithm(*fit_params)
-
-                centroids_list_py = np.array(centroids_list_py)
-                centroids_list_sk = np.array(centroids_list_sk)
-
-                dist_desired_py = dist_between_centroid_lists(centroids_list_desired, centroids_list_py)
-                dist_py_sk      = dist_between_centroid_lists(centroids_list_py, centroids_list_sk)
-                
-                print(dist_desired_py)
-                print(dist_py_sk)
-
-                self.assertTrue(dist_desired_py == 0)
-                #self.assertTrue(dist_desired_sk == 0)
-    
-        print("test_equal_to_templates() - start")
-        pathloc = f"../resources/test_data_2"
-        test_equal_to_template_idx(3,  333,                       0, f"{pathloc}/input_1_db_1.txt", f"{pathloc}/input_1_db_2.txt")
-        test_equal_to_template_idx(7,  kmeans_pp.MAX_ITER_UNSPEC, 0, f"{pathloc}/input_2_db_1.txt", f"{pathloc}/input_2_db_2.txt")
-        test_equal_to_template_idx(15, 750,                       0, f"{pathloc}/input_3_db_1.txt", f"{pathloc}/input_3_db_2.txt")
 
 
 def randomize_fit_params(k=None, max_iter=None, eps=None, point_count=None, dims_count=None):
