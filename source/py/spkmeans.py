@@ -29,7 +29,9 @@ def main():
     elif goal == 'lnorm':
         results = spkmeansmodule.full_lnorm(datapoints)
     elif goal == 'jacobi':
-        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi(datapoints)
+        symmetric_matrix = datapoints # not actually datapoints
+        assertd(symmetric_matrix.shape[0] == symmetric_matrix.shape[1]) # should've been checked
+        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi(symmetric_matrix)
         results = eigenvalues + eigenvectors
     else:
         raise InvalidInputTrigger("Invalid goal specified!")
