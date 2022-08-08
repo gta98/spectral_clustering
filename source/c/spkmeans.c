@@ -173,6 +173,6 @@ mat_t* calc_full_lnorm(mat_t* data) {
     return L_norm;
 }
 
-void calc_full_jacobi(mat_t* data, mat_t** eigenvectors, mat_t** eigenvalues) {
-    calc_jacobi(data, eigenvectors, eigenvalues);
+void calc_full_jacobi(mat_t* generic_symm_mat, mat_t** eigenvectors, mat_t** eigenvalues) {
+    calc_jacobi(generic_symm_mat, eigenvectors, eigenvalues);
 }
