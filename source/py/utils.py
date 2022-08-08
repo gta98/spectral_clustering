@@ -315,3 +315,11 @@ def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[f
     eigenvalues = [float(x) for x in eigenvalues]
     eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors
+
+
+def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
+    datapoints = convert__list_of_lists__to__np_matrix(datapoints)
+    eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
+    eigenvalues = [float(x) for x in eigenvalues]
+    eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
+    return eigenvalues, eigenvectors
