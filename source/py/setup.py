@@ -11,6 +11,12 @@ cwd = os.path.dirname(
 PATH_SRC=os.environ.get('PATH_SRC') or f"{cwd}/source/c"
 PATH_OUT=os.environ.get('PATH_SRC') or f"{cwd}/output"
 
+PRECONFIGURED_CFLAGS = sysconfig.get_config_var('CFLAGS').split()
+try:
+    PRECONFIGURED_CFLAGS.remove('-DNDEBUG')
+except ValueError:
+    pass
+
 os.makedirs(f"{PATH_OUT}", exist_ok=True)
 
 # Override build command
@@ -59,7 +65,7 @@ setup(
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
                 f"-D FLAG_ASSERTD",
-            ] + sysconfig.get_config_var('CFLAGS').split(),
+            ] + PRECONFIGURED_CFLAGS,
         ),
         Extension(
             # the qualified name of the extension module to build
@@ -85,8 +91,8 @@ setup(
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
-                f"-D FLAG_ASSERTD",
-            ] + sysconfig.get_config_var('CFLAGS').split(),
+                f"-D FLAG_ASSERTD"
+            ] + PRECONFIGURED_CFLAGS,
         ),
     ],
     include_dirs=[

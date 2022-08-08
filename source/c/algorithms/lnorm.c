@@ -2,17 +2,34 @@
 
 mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt) {
     mat_t* L;
-    uint i, n;
+    mat_t* tmp;
+    uint i, j, n;
+    real Lij;
+    assertd_is_square(W);
+    assertd_same_dims(W, D_inv_sqrt);
     n = W->h;
-    assertd((n == W->h) && (n == W->w));
-    assertd((n == D_inv_sqrt->h) && (n == D_inv_sqrt->w));
     L = mat_init(n,n);
     if (!L) return NULL;
-    mat_mul(L, W, D_inv_sqrt);
-    mat_mul(L, D_inv_sqrt, L);
-    mat_mul_scalar(L, L, -1);
-    for (i=0; i<n; i++) {
-        mat_set(L, i, i, 1 + mat_get(L, i, i));
+    
+    tmp = mat_init(n,n);
+    if (!tmp) {
+        mat_free(&L);
+        return NULL;
     }
+
+    mat_mul(tmp, W, D_inv_sqrt);
+    mat_mul(L, D_inv_sqrt, tmp);
+    for (i=0; i<n; i++) {
+        for (j=0; j<n; j++) {
+            Lij = mat_get(L,i,j);
+            mat_set(L,i,j,((real)-1)*Lij);
+        }
+    }
+    for (i=0; i<n; i++) {
+        Lij = mat_get(L, i, i);
+        mat_set(L, i, i, Lij + 1);
+    }
+
+    if (tmp) mat_free(&tmp);
     return L;
 }

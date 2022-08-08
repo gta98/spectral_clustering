@@ -204,6 +204,7 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs) {
     uint i, j, k;
     real value;
     real val_lhs, val_rhs;
+    assertd(dst != mat_lhs); assertd(dst != mat_rhs);
     assertd(mat_lhs->w == mat_rhs->h);
     assertd(dst->w == mat_rhs->w);
     assertd(dst->h == mat_lhs->h);
