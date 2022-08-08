@@ -134,6 +134,22 @@ void perform_V_iteration(mat_t* V, mat_t* A) {
     perform_V_iteration_ij(V, i, j, A);
 }
 
+/*
+sets A_tag := P.transpose @ A @ P
+sets tmp := junk
+*/
+void transform_A_tag(mat_t* A_tag, mat_t* A, mat_t* P, mat_t* tmp) {
+    assertd(A_tag); assertd(A); assertd(P);
+    assertd(A_tag != A); assertd(A != P); assertd(A_tag != P);
+    assertd_is_square(A_tag); assertd_same_dims(A_tag, A); assertd_same_dims(A, P);
+    assertd(tmp); assertd_same_dims(tmp, A_tag);
+    assertd(tmp != A_tag); assertd(tmp != A); assertd(tmp != P);
+    mat_transpose(P);
+    mat_mul(tmp, P, A); /* tmp := P.transpose @ A */
+    mat_transpose(P);
+    mat_mul(A_tag, tmp, P); /* A_tag := tmp @ P = P.transpose @ A @ P */
+}
+
 void calc_A_tag(mat_t* A_tag, mat_t* A) {
     uint i, j, r;
     real c, s;
@@ -167,15 +183,7 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* A_original, mat_t* V, 
     mat_copy_to(V, tmp);
 
     /* A_tag = P.transpose() @ A @ P */
-    /*mat_transpose(P);
-    mat_mul(A_tag, P, A);
-    mat_transpose(P);
-    mat_mul(A_tag, A_tag, P);*/
-    mat_mul(A_tag, A_original, V);
-    mat_transpose(V);
-    mat_mul(A_tag, V, A_original);
-    mat_transpose(V);
-    /*calc_A_tag(A_tag, A);*/
+    transform_A_tag(A_tag, A, P, tmp);
 }
 
 /* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */

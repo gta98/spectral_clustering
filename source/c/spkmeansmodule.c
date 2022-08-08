@@ -404,7 +404,7 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
 
     if (!mat) {
         printd("=========RETURNING ERROR 11==========\n");
-        return PyErr_Occurred();
+        return NULL;
     }
 
     h = mat->h;
@@ -412,16 +412,15 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
     py_mat = PyList_New(h);
     if (!py_mat) {
         printd("=========RETURNING ERROR 12==========\n");
-        return PyErr_NoMemory();
+        return NULL;
     }
 
     for (i=0; i<h; i++) {
         cell = mat_get(mat, i, i);
         py_cell = Py_BuildValue("d", cell);
         if (!py_cell || PyErr_Occurred()) {
-            printd("Could not build value for %f!!! Numero dos\n", cell);
-        } else {
-            printd("Numero dos passed for %f\n", cell);
+            /* FIXME - low severity - value error, might wanna set later */
+            return NULL;
         }
         PyList_SetItem(py_mat, i, py_cell);
     }
@@ -652,10 +651,7 @@ static PyObject* test_PTAP(PyObject* self, PyObject* mat_tuple) {
     tmp = mat_init(A->h, A->w);
     if (!tmp) goto wrap_PTAP_test_no_memory;
 
-    mat_transpose(P);
-    mat_mul(tmp, P, A); /* dst = P.transpose @ A */
-    mat_transpose(P);
-    mat_mul(dst, tmp, P); /* dst = dst @ P = P.transpose @ A @ P */
+    transform_A_tag(dst, A, P, tmp);
 
     py_dst = Mat_to_PyListListFloat(dst);
     if (!py_dst) goto wrap_PTAP_test_no_memory;
@@ -819,6 +815,48 @@ static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
     return py_dst;
 }
 
+static PyObject* test_calc_L_norm(PyObject* self, PyObject* args) { /* W, D */
+    PyObject* py_W; PyObject* py_D;
+    mat_t* W; mat_t* D; mat_t* result;
+    PyObject* py_result;
+
+    W = NULL;
+    D = NULL;
+    result = NULL;
+    py_result = NULL;
+
+    if (!PyArg_ParseTuple(args, "OO", &py_W, &py_D)) {
+        PyErr_SetString(PyExc_ValueError, "Expected W, D as inputs");
+        goto test_calc_L_norm_finish;
+    }
+
+    W = PyListListFloat_to_Mat(py_W);
+    if (W == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse W");
+        goto test_calc_L_norm_finish;
+    }
+
+    D = PyListListFloat_to_Mat(py_D);
+    if (D == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Could not parse D");
+        goto test_calc_L_norm_finish;
+    }
+
+    result = calc_lnorm(W, D);
+    if (!result) {
+        PyErr_SetString(PyExc_RuntimeError, "Could not calculate Lnorm from W, D");
+        goto test_calc_L_norm_finish;
+    }
+
+    py_result = Mat_to_PyListListFloat(result);
+
+    test_calc_L_norm_finish:
+    if (W) mat_free(&W);
+    if (D) mat_free(&D);
+    if (result) mat_free(&result);
+    return py_result;
+}
+
 #endif
 
 
@@ -892,6 +930,10 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) test_PTAP,
       METH_VARARGS, 
       PyDoc_STR("Returns P.transpose @ A @ P, where A == arg1, P == arg2")},
+    {"test_calc_L_norm",
+      (PyCFunction) test_calc_L_norm,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates Lnorm from W (arg1), D (arg2)")},
 #endif
     {NULL, NULL, 0, NULL}
 };

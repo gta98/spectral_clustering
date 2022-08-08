@@ -116,10 +116,15 @@ def calc_ddg(W: np.ndarray) -> np.ndarray:
     D = np.diag(W_sum_along_horizontal_axis)
     return D
 
+@wrap__ndarray_to_list_of_lists
+def calc_ddg_inv_sqrt(W: np.ndarray) -> np.ndarray:
+    D = calc_ddg(W)
+    return np.diag(np.diag(D)**(-0.5))
+
 
 @wrap__ndarray_to_list_of_lists
-def calc_L_norm(W: np.ndarray, D: np.ndarray) -> np.ndarray:
-    D_pow_minus_half = np.diag(np.diag(D)**(-0.5)) # removes inf's off diag and replaces with zeros
+def calc_L_norm(W: np.ndarray, D_pow_minus_half: np.ndarray) -> np.ndarray:
+    #D_pow_minus_half = np.diag(np.diag(D)**(-0.5)) # removes inf's off diag and replaces with zeros
     DWD = (D_pow_minus_half @ W @ D_pow_minus_half)
     assertd(DWD.shape[0] == DWD.shape[1])
     I = identity_matrix_like(DWD)
@@ -226,7 +231,7 @@ def calc_eigengap(eigenvalues_sort_dec: np.ndarray) -> np.ndarray:
 @wrap__ndarray_to_list_of_lists
 def calc_k(datapoints: np.ndarray) -> np.ndarray:
     n = len(datapoints)
-    L_norm = calc_L_norm(datapoints)
+    L_norm = full_lnorm(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(L_norm)
     eigenvectors_sort_desc, eigenvalues_sort_desc = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
     assertd(n == eigenvalues_sort_desc.shape[0])
@@ -276,8 +281,8 @@ def full_ddg(datapoints: List[List[float]]) -> List[List[float]]:
 
 def full_lnorm(datapoints: List[List[float]]) -> List[List[float]]:
     W = full_wam(datapoints)
-    D = calc_ddg(W)
-    Lnorm = calc_L_norm(W, D)
+    D_pow_minus_half = calc_ddg_inv_sqrt(W)
+    Lnorm = calc_L_norm(W, D_pow_minus_half)
     return Lnorm
 
 
