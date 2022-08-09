@@ -1,8 +1,8 @@
 #!/bin/bash
 # Script to compile and execute a c program
 
-PATH_SRC="./source/c"
-PATH_OUT="./output"
+PATH_SRC=${PATH_SRC:-'./source/c'}
+PATH_OUT=${PATH_OUT:-'./output'}
 
 mkdir -p $PATH_OUT
 

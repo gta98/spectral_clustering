@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List
+from typing import List,NoReturn
 import numpy as np
 import pandas as pd
 import mykmeanssp
@@ -11,10 +11,14 @@ from definitions import *
 
 
 def main():
-
     np.random.seed(0)
     k, goal, datapoints = get_data_from_cmd()
+    results = get_results(k, goal, datapoints)
+    assertd(results)
+    print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
+
+def get_results(k: Union[int,None], goal: Goal, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
     if goal == 'spk':
         L_norm = spkmeansmodule.full_lnorm(datapoints)
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
@@ -35,13 +39,10 @@ def main():
         results = eigenvalues + eigenvectors
     else:
         raise InvalidInputTrigger("Invalid goal specified!")
-
-    assertd(results)
-    print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
+    return results
 
 
 def get_data_from_cmd():
-
     def _get_raw_cmd_args():
         args = sys.argv
         if not args:

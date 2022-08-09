@@ -8,7 +8,6 @@ import sys
 import numpy as np
 import sklearn.cluster
 import kmeans_pp
-import kmeans_sk
 from typing import List, Callable, Tuple
 import math
 import time

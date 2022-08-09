@@ -7,9 +7,8 @@ cwd = os.path.dirname(
         os.path.dirname(
             os.path.abspath(os.path.dirname(__file__)) ))
 
-
 PATH_SRC=os.environ.get('PATH_SRC') or f"{cwd}/source/c"
-PATH_OUT=os.environ.get('PATH_SRC') or f"{cwd}/output"
+PATH_OUT=os.environ.get('PATH_OUT') or f"{cwd}/output" #FIXME - do I want to change this to get(PATH_SRC)?
 
 PRECONFIGURED_CFLAGS = sysconfig.get_config_var('CFLAGS').split()
 try:

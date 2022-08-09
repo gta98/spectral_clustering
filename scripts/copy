@@ -1,5 +1,4 @@
 cd ~/repos/softproj
 cp -r scripts/* debug
-#cp -r source/py/* debug
 cp -r source/c/* debug
 cp -r resources/test_data_2/* debug 
