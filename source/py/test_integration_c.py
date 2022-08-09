@@ -3,7 +3,7 @@
 import unittest
 from abc import abstractmethod
 from typing import List, Callable, Tuple, Union, Optional, Any
-from types import NoneType
+NoneType = type(None)
 from math import inf
 import time
 import subprocess
@@ -15,5 +15,5 @@ class TestIntegrationStandaloneC(unittest.TestCase):
 
     @classmethod
     def compile(cls):
-        
+
     pass
