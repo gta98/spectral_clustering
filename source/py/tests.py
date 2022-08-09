@@ -217,6 +217,20 @@ class TestFit(unittest.TestCase):
         #print(PTAP)
         self.assertLess(relative_error, 1e-4)
     
+    def test_calc_k(self):
+        def test_calc_k_length_n(n:int):
+            eigenvalues = sorted([float(x) for x in np.random.rand(n)])[::-1]
+            #print(type(eigenvalues))
+            k_c = spkmeansmodule.full_calc_k(eigenvalues)
+            k_py = spkmeans_utils.calc_k(np.array(eigenvalues))
+            self.assertEqual(k_c, k_py, f"k value calculated by C and Python not equal - k(c)=={k_c}, k(py)=={k_py}, n is {n}")
+        test_calc_k_length_n(2)
+        test_calc_k_length_n(3)
+        test_calc_k_length_n(4)
+        test_calc_k_length_n(998)
+        test_calc_k_length_n(999)
+        test_calc_k_length_n(1000)
+
     def test_mat_cellwise_add(self):
         A = make_compatible_blob(14,91,offset=+1.0)
         B = make_compatible_blob(14,91,offset=+1.0)
