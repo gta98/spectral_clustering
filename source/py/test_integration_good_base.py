@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import unittest
 from abc import abstractmethod
 from typing import List, Callable, Tuple, Union, Optional, Any
@@ -29,4 +31,8 @@ class TestIntegrationStandaloneGood(TestIntegrationBase):
         blob = random_blob('big')
         result = self.run_with_data(None, 'wam', blob)
         result_ref = spkmeansmodule_ref.calc_wam(blob)
-        
+
+
+if __name__ == '__main__':
+    print("Starting TestIntegrationStandaloneGood")
+    unittest.main()
