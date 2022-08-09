@@ -354,7 +354,16 @@ def relative_error_centroids(centroids_real: List[List[float]], centroids_calc: 
 def relative_error_matrices(centroids_real: List[List[float]], centroids_calc: List[List[float]]) -> float:
     real = np.array([[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_real])
     calc = np.array([[round(y,ROUNDING_DIGITS) for y in x] for x in centroids_calc])
-    return np.mean((np.abs(calc-real)/np.abs(real)), axis=None)
+    relerr_mat = np.abs(calc-real)/np.abs(real)
+    relerr_arr = []
+    for i in range(len(centroids_real)):
+        for j in range(len(centroids_real[i])):
+            if relerr_mat[i,j] != np.nan:
+                relerr_arr.append(relerr_mat[i,j])
+    relerr_arr = np.array(relerr_arr)
+    print(relerr_arr)
+    return np.mean(relerr_arr)
+    
 
 def relative_error_vectors(vector_real: List[float], vector_calc: List[float]) -> float:
     vector_real, vector_calc = np.array(vector_real), np.array(vector_calc)
