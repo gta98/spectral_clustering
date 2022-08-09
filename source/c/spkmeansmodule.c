@@ -179,6 +179,7 @@ static PyObject* normalize_matrix_by_rows(PyObject* self, PyObject* args) {
     if (data == NULL) return NULL;
 
     mat_normalize_rows(data, data);
+    /*mat_print(data);*/
 
     py_result = Mat_to_PyListListFloat(data);
     mat_free(&data);

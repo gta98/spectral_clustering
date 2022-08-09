@@ -24,7 +24,7 @@ ROUNDING_DIGITS = 4
 def make_compatible_blob(n=100,d=10, offset=0) -> List[List[float]]:
     x, _ = make_blobs(n_samples=n, n_features=d)
     x: np.ndarray
-    return [[z+offset for z in y] for y in list(x)]
+    return [[float(z+offset) for z in y] for y in list(x)]
 
 def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
     a = np.random.rand(n,n)
@@ -230,6 +230,15 @@ class TestFit(unittest.TestCase):
         test_calc_k_length_n(998)
         test_calc_k_length_n(999)
         test_calc_k_length_n(1000)
+
+    def test_normalize_rows(self):
+        n,k = 1000,100
+        U = make_compatible_blob(n,k,offset=+0.1)
+        T_py = spkmeans_utils.normalize_matrix_by_rows(U)
+        T_c = spkmeansmodule.normalize_matrix_by_rows(U)
+        #print(T_py)
+        relative_error = relative_error_centroids(T_py, T_c)
+        self.assertLess(relative_error, 1e-4)
 
     def test_mat_cellwise_add(self):
         A = make_compatible_blob(14,91,offset=+1.0)

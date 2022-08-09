@@ -36,7 +36,7 @@ def can_convert_to__np_matrix(A: List[List[float]]):
 def convert__np_matrix__to__list_of_lists(A: np.ndarray) -> List[List[float]]:
     if not can_convert_to_list_of_list(A):
         raise ValueError("A must be a 2d matrix")
-    return [list(x) for x in list(A)]
+    return [[float(y) for y in x] for x in list(A)]
 
 def convert__list_of_lists__to__np_matrix(A: List[List[float]]) -> np.ndarray:
     if not can_convert_to__np_matrix(A):
@@ -339,3 +339,10 @@ def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List
     eigenvalues = [float(x) for x in eigenvalues]
     #eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors
+
+
+@wrap__ndarray_to_list_of_lists
+def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
+    #print(U.shape)
+    U_square_sum = np.sqrt(np.sum(np.square(U), axis=1))
+    return (U.transpose()/U_square_sum).transpose()

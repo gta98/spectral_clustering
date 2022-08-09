@@ -19,7 +19,7 @@ def main():
         L_norm = spkmeansmodule.full_lnorm(datapoints)
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
         k = spkmeansmodule.full_calc_k(eigenvalues)
-        U = eigenvectors[:k]
+        U = [x[:k] for x in eigenvectors]
         T = spkmeansmodule.normalize_matrix_by_rows(U)
         results = calc_kmeanspp(k, T)
     elif goal == 'wam':
