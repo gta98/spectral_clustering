@@ -63,8 +63,7 @@ class TestIntegrationStandaloneGood(TestIntegrationBase):
         self.assert_mat_dist(result_ref, result)
     
     def test_jacobi(self):
-        blob = random_blob_symmetric()
-        blob = random_blob()
+        blob = random_blob_symmetric('small')
         result = str_to_mat(self.run_with_data('jacobi', blob))
         eigenvalues, eigenvectors = result[0], result[1:]
         eigenvalues_ref, eigenvectors_ref = spkmeansmodule_ref.full_jacobi(blob)
