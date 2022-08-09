@@ -186,26 +186,6 @@ static PyObject* normalize_matrix_by_rows(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_calc_k(PyObject* self, PyObject* args) {
-    PyObject* py_data;
-    PyObject* py_result;
-    mat_t* data;
-    uint result;
-
-    if (!PyArg_ParseTuple(args, "O", &py_data)) {
-        return NULL;
-    }
-
-    data = PyListListFloat_to_Mat(py_data);
-    if (data == NULL) return NULL;
-
-    result = calc_k(data);
-    mat_free(&data);
-
-    py_result = PyLong_FromUnsignedLong((unsigned long) result);
-    return py_result;
-}
-
 static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     mat_t* mat;
     PyObject* py_row;
@@ -263,11 +243,11 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     return NULL;
 }
 
-static mat_t* PyListFloat_to_Mat(PyObject* py_mat) {
+static mat_t* PyListFloat_to_Mat(PyObject* py_mat, bool flat) {
     mat_t* mat;
     PyObject* py_cell;
-    uint i;
-    int w;
+    uint i, j;
+    int w,h;
     double mat_cell;
 
     if (!py_mat) {
@@ -279,15 +259,24 @@ static mat_t* PyListFloat_to_Mat(PyObject* py_mat) {
 
     w = (int) PyList_Size(py_mat);
     if (w < 0) goto invalid_data_22;
+    h = flat? 1 :w;
 
-    mat = mat_init((const uint)1,(const uint)w);
+    mat = mat_init((const uint)h,(const uint)w);
     if (!mat) return NULL;
 
-    for (i=0; i<(uint)w; i++) {
-        py_cell = PyList_GetItem(py_mat, i);
+    for (i=0; i<(uint)h; i++) {
+        for (j=0; j<(uint)w; j++) {
+            mat_set(mat, i, j, 0);
+        }
+    }
+
+    for (j=0; j<(uint)w; j++) {
+        py_cell = PyList_GetItem(py_mat, j);
         mat_cell = PyFloat_AsDouble(py_cell);
         if (PyErr_Occurred()) goto error_occurred_2;
-        mat_set(mat, 0, i, mat_cell);
+        
+        if (flat) mat_set(mat, 0, j, mat_cell);
+        else mat_set(mat, j, j, mat_cell);
     }
 
     return mat;
@@ -388,6 +377,27 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
     }
 
     return py_mat;
+}
+
+static PyObject* full_calc_k(PyObject* self, PyObject* args) {
+    PyObject* py_data;
+    PyObject* py_result;
+    mat_t* data;
+    uint result;
+
+    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+        return NULL;
+    }
+
+    data = PyListFloat_to_Mat(py_data, true);
+    if (data == NULL) return NULL;
+
+    result = calc_k(data);
+    /*printd("\nCALCULATED K: %d\n",result);*/
+    mat_free(&data);
+
+    py_result = PyLong_FromUnsignedLong((unsigned long) result);
+    return py_result;
 }
 
 #ifdef FLAG_DEBUG
@@ -664,7 +674,7 @@ static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* self, PyObject* args
     }
     py_mat = NULL;
 
-    mat_indices = PyListFloat_to_Mat(py_indices);
+    mat_indices = PyListFloat_to_Mat(py_indices, true);
     if (!mat_indices) {
         PyErr_SetString(PyExc_MemoryError, "Could not convert py_indices into mat_indices");
         goto wrap_mat_reorder_finish;
@@ -737,7 +747,7 @@ static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
     }
     py_mat = NULL;
 
-    mat_eigenvalues_flat = PyListFloat_to_Mat(py_eigenvalues);
+    mat_eigenvalues_flat = PyListFloat_to_Mat(py_eigenvalues, true);
     if (!mat_eigenvalues_flat) {
         PyErr_SetString(PyExc_MemoryError, "Could not convert py_eigenvalues into mat_eigenvalues_flat");
         goto wrap_mat_sort_cols_desc_finish;

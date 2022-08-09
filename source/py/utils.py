@@ -252,7 +252,21 @@ def calc_eigengap(eigenvalues_sort_dec: np.ndarray) -> np.ndarray:
 
 
 @wrap__ndarray_to_list_of_lists
-def calc_k(datapoints: np.ndarray) -> np.ndarray:
+def calc_k(eigenvalues: np.array) -> np.ndarray:
+    n = len(eigenvalues)
+    assertd(n >= 2) # eigengap is undefined for n in {0,1}
+    for i in range(1,n):
+        assertd(eigenvalues[i] < eigenvalues[i-1])
+    half_n = int(np.floor(n/2))
+    delta_abs = calc_eigengap(eigenvalues)
+    delta_max = np.max(delta_abs[:half_n])
+    for i in range(half_n):
+        if delta_abs[i] == delta_max:
+            return i
+    raise Exception("We were supposed to return")
+
+@wrap__ndarray_to_list_of_lists
+def full_calc_k(datapoints: np.ndarray) -> np.ndarray:
     n = len(datapoints)
     L_norm = full_lnorm(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(L_norm)
