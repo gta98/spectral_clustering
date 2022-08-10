@@ -14,6 +14,7 @@ import time
 from sklearn.datasets import make_blobs
 import spkmeansmodule
 import spkmeansref as spkmeans_utils
+from test_integration_base import TestIntegrationBase
 import re
 import os
 

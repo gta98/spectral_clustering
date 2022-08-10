@@ -36,14 +36,11 @@ class TestIntegrationBase():
         cls.path_to_writable_folder = cls.path_to_writable_folder or "/tmp"
         cls.path_to_workdir = f"{cls.path_to_writable_folder}/test_spkmeans_{int(time.time())}"
         os.makedirs(f"{cls.path_to_workdir}", exist_ok=False)
-        os.makedirs(f"{cls.path_to_workdir}/c")
-        os.system(f"cp -r {cls.path_to_repo_folder}/comp.sh {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/setup.py {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/spkmeans.py {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/utils.py {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/kmeans_pp.py {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/definitions.py {cls.path_to_workdir}")
-        os.system(f"cp -r {cls.path_to_repo_folder}/source/c/* {cls.path_to_workdir}/c")
+        os.environ['SAVEDIR'] = cls.path_to_workdir
+        os.system(f"{cls.path_to_repo_folder}/submit.sh")
+        os.chdir(cls.path_to_workdir)
+        os.system(f"unzip *.zip; rm *.zip")
+        os.system(f"mv */* .")
 
     @abstractclassmethod 
     def compile(cls) -> None:
