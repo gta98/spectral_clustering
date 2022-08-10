@@ -8,7 +8,23 @@ from typing import List, Tuple, NoReturn, Union
 import numpy as np
 import os
 import sys
-from definitions import *
+#from definitions import *
+
+INFINITY = float('inf')
+JACOBI_MAX_ROTATIONS = 100
+JACOBI_EPSILON = 1e-5
+KMEANS_EPSILON = 1e-5 # FIXME - what should this be? 0?
+KMEANS_MAX_ITER = 300 # this was verified to be 300
+
+def assertd(condition:bool) -> Union[None, NoReturn]:
+    assert(condition)
+
+def sign(num: int) -> int:
+    assertd(num != np.nan)
+    if num == 0:
+        return 1
+    else:
+        return np.sign(num)
 
 def can_convert_to_list_of_list(A: np.ndarray) -> bool:
     if type(A) != np.ndarray:

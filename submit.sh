@@ -19,9 +19,10 @@ cp -r generics/*.c $WORKDIR/generics
 cp -r generics/*.h $WORKDIR/generics
 cp -r algorithms/*.c $WORKDIR/algorithms
 cp -r algorithms/*.h $WORKDIR/algorithms
+cp -r comp.sh $WORKDIR
 
 cd $WORKDIR/..
+echo "I am in $(pwd) and foldername is ${FOLDERNAME}, savedir is ${SAVEDIR}"
 zip -r $FOLDERNAME.zip $FOLDERNAME
 popd
-cd $SAVEDIR
-cp $WORKDIR/../$FOLDERNAME.zip .
+cp $WORKDIR/../$FOLDERNAME.zip $SAVEDIR

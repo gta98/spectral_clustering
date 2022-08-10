@@ -36,8 +36,11 @@ class TestIntegrationBase():
         cls.path_to_writable_folder = cls.path_to_writable_folder or "/tmp"
         cls.path_to_workdir = f"{cls.path_to_writable_folder}/test_spkmeans_{int(time.time())}"
         os.makedirs(f"{cls.path_to_workdir}", exist_ok=False)
-        os.environ['SAVEDIR'] = cls.path_to_workdir
-        os.system(f"{cls.path_to_repo_folder}/submit.sh")
+        subprocess.check_output(
+            ["bash", f"{cls.path_to_repo_folder}/submit.sh"],
+            cwd=cls.path_to_repo_folder,
+            env=dict(os.environ, SAVEDIR=cls.path_to_workdir)
+        )
         os.chdir(cls.path_to_workdir)
         os.system(f"unzip *.zip; rm *.zip")
         os.system(f"mv */* .")

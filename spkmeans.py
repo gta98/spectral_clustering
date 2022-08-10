@@ -3,7 +3,6 @@ import sys
 from typing import List,NoReturn
 import numpy as np
 import pandas as pd
-from definitions import *
 import spkmeansmodule
 import mykmeanssp
 from enum import Enum
@@ -29,13 +28,6 @@ KMEANS_MAX_ITER = 300 # this was verified to be 300
 
 class InvalidInputTrigger(ValueError): pass
 class GenericErrorTrigger(Exception): pass
-
-class Goal(Enum):
-    WAM = wam = 1
-    DDG = ddg = 2
-    LNORM = lnorm = 3
-    JACOBI = jacobi = 4
-    SPK = spk = 5
 
 def assertd(condition:bool) -> Union[None, NoReturn]:
     assert(condition)
