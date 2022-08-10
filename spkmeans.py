@@ -48,14 +48,15 @@ def main():
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
 
-def get_results(k: Optional[int], goal: Goal, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
+def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
     if goal == 'spk':
         L_norm = spkmeansmodule.full_lnorm(datapoints)
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
         k = k or spkmeansmodule.full_calc_k(eigenvalues)
         U = [x[:k] for x in eigenvectors]
         T = spkmeansmodule.normalize_matrix_by_rows(U)
-        results = calc_kmeanspp(k, T)
+        T_indexed = [[idx]+row for idx,row in enumerate(T)]
+        results = calc_kmeanspp(k, T_indexed)
     elif goal == 'wam':
         results = spkmeansmodule.full_wam(datapoints)
     elif goal == 'ddg':
