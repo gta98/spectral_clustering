@@ -1,5 +1,0 @@
-mkdir debug
-cp source/* debug/
-./scripts/build_c
-cd debug
-python3 tests.py
