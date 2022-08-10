@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
-
 import unittest
-from abc import abstractmethod
+from abc import abstractmethod, abstractclassmethod
 from typing import List, Callable, Tuple, Union, Optional, Any
 NoneType = type(None)
 from math import inf
@@ -15,7 +13,7 @@ import random
 import inspect
 
 
-class TestIntegrationStandaloneGood(TestIntegrationBase):
+class TestIntegrationGoodBase(TestIntegrationBase):
     """
     Testing class for good cases - valid inputs, in standalone C
     """
@@ -23,16 +21,6 @@ class TestIntegrationStandaloneGood(TestIntegrationBase):
     path_to_repo_folder: str = "/home/fakename/repos/softproj"
     path_to_writable_folder: str = "/tmp"
 
-    @classmethod
-    def compile(cls):
-        path_to_executable = cls.compile_c_standalone()
-        cls.path_to_executable = path_to_executable
-    
-    @classmethod
-    def run_with_data(cls,
-            goal: str, data: List[List[float]]) -> str:
-        return super().run_with_data(cls.path_to_executable, None, goal, data)
-    
     def assert_mat_dist(self, real: np.ndarray, calc: np.ndarray):
         real, calc = np.round(np.array(real),4), np.round(np.array(calc),4)
         dist = min(
@@ -69,8 +57,3 @@ class TestIntegrationStandaloneGood(TestIntegrationBase):
         eigenvalues_ref, eigenvectors_ref = spkmeansmodule_ref.full_jacobi(blob)
         self.assert_mat_dist(eigenvalues_ref, eigenvalues)
         self.assert_mat_dist(eigenvectors_ref, eigenvectors)
-
-
-if __name__ == '__main__':
-    print("Starting TestIntegrationStandaloneGood")
-    unittest.main()

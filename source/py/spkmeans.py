@@ -103,7 +103,8 @@ def get_data_from_cmd():
                 raise GenericErrorTrigger(f"One of the datapoints is missing a valid index in its first dimension")
         elif goal in {'wam', 'ddg', 'lnorm'}:
             if k != None:
-                raise InvalidInputTrigger(f"3 parameters specified, did not expect k for goal {goal}")
+                #raise InvalidInputTrigger(f"3 parameters specified, did not expect k for goal {goal}")
+                pass
             if d < 1:
                 raise GenericErrorTrigger("Datapoints number of dimensions must be at least 1")
         elif goal in {'jacobi'}:

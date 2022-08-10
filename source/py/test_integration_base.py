@@ -11,7 +11,7 @@ from sklearn.datasets import make_blobs
 import random
 
 
-class TestIntegrationBase(unittest.TestCase):
+class TestIntegrationBase():
 
     path_to_repo_folder: str = None
     path_to_writable_folder: str = None
@@ -42,6 +42,7 @@ class TestIntegrationBase(unittest.TestCase):
         os.system(f"cp -r {cls.path_to_repo_folder}/source/py/spkmeans.py {cls.path_to_workdir}")
         os.system(f"cp -r {cls.path_to_repo_folder}/source/py/utils.py {cls.path_to_workdir}")
         os.system(f"cp -r {cls.path_to_repo_folder}/source/py/kmeans_pp.py {cls.path_to_workdir}")
+        os.system(f"cp -r {cls.path_to_repo_folder}/source/py/definitions.py {cls.path_to_workdir}")
         os.system(f"cp -r {cls.path_to_repo_folder}/source/c/* {cls.path_to_workdir}/c")
 
     @abstractclassmethod 
@@ -140,7 +141,7 @@ def file_read_mat(path: str) -> List[List[float]]:
         return str_to_mat(mat_str)
 
 def mat_to_str(mat: List[List[float]]) -> str:
-    return '\n'.join([','.join([str(y) for y in x]) for x in mat])
+    return '\n'.join([','.join([str(y) for y in x]) for x in mat]) + '\n'
 
 def str_to_mat(mat_str: str) -> List[List[float]]:
     def filter_out_junk_chars(s:str):
@@ -191,9 +192,3 @@ def random_blob_symmetric(size: str = None):
         return make_compatible_blob_symmetric(int(np.random.randint(2,5)))
     else:
         raise ValueError()
-    
-        
-
-if __name__ == '__main__':
-    print("Starting tests")
-    unittest.main()
