@@ -408,6 +408,69 @@ static PyObject* full_calc_k(PyObject* self, PyObject* args) {
     return py_result;
 }
 
+static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
+    mat_t* data;
+    mat_t* result;
+    PyObject* py_T;
+    /*PyObject* py_result_tuple;
+    PyObject* py_k;*/
+    mat_t* L_norm;
+    mat_t* eigenvalues;
+    mat_t* eigenvectors;
+    uint k;
+    uint original_w;
+    mat_t* U;
+
+    data = NULL;
+    result = NULL;
+    L_norm = NULL;
+    eigenvalues = NULL;
+    eigenvectors = NULL;
+    k = 0;
+    U = NULL;
+    py_T = NULL;
+    /*py_result_tuple = NULL;
+    py_k = NULL;*/
+
+    data = parse_mat_from_args(args);
+    if (data == NULL) goto spk_had_a_problem;
+
+    L_norm = calc_full_lnorm(data);
+    calc_jacobi(L_norm, &eigenvectors, &eigenvalues);
+    k = calc_k(eigenvalues);
+    original_w = U->w;
+    U->w = k;
+    mat_normalize_rows(U, U);
+    py_T = Mat_to_PyListListFloat(U);
+    U->w = original_w; /* not needed but just in case (mat_free) */
+
+    /*py_result_tuple = PyList_New(2);
+    if (!py_result_tuple || PyErr_Occurred()) goto spk_tuple_failed_malloc;
+    py_k = PyLong_FromUnsignedLong((unsigned long) k);
+    if (!py_k || PyErr_Occurred()) goto spk_tuple_failed_malloc;
+
+    PyList_SetItem(py_result_tuple, 0, py_k);
+    PyList_SetItem(py_result_tuple, 1, py_T);*/
+
+    goto spk_free_and_return;
+
+    /*spk_tuple_failed_malloc:
+    if (py_k) Py_DECREF(py_k);
+    if (py_T) Py_DECREF(py_T);
+    if (py_result_tuple) Py_DECREF(py_result_tuple);*/
+    spk_had_a_problem:
+    /* set error here */
+    goto spk_free_and_return;
+    spk_free_and_return:
+    if (data) mat_free(&data);
+    if (result) mat_free(&result);
+    if (L_norm) mat_free(&L_norm);
+    if (eigenvalues) mat_free(&eigenvalues);
+    if (eigenvectors) mat_free(&eigenvectors);
+    if (U) mat_free(&U);
+    return py_T;
+}
+
 #ifdef FLAG_DEBUG
 
 static PyObject* test_read_data(PyObject* self, PyObject* args) {
@@ -875,6 +938,10 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) full_calc_k,
       METH_VARARGS, 
       PyDoc_STR("Given eigenvalues, determines k according to eigengap heuristic")},
+    {"full_spk_1_to_5",
+      (PyCFunction) full_spk_1_to_5,
+      METH_VARARGS, 
+      PyDoc_STR("Performs spk stages 1-5 on mat in path, returns T")},
 #ifdef FLAG_DEBUG
     {"mat_cellwise_add",
       (PyCFunction) wrap_mat_cellwise_add,

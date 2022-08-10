@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.datasets import make_blobs
 import random
 
+default_path_to_writable_folder = "/tmp"
 
 class TestIntegrationBase():
 
@@ -33,7 +34,7 @@ class TestIntegrationBase():
     def setup_workdir(cls) -> None:
         if type(cls.path_to_writable_folder) not in {str, NoneType}:
             raise ValueError("Invalid type - path_to_writable_folder should be a string or None")
-        cls.path_to_writable_folder = cls.path_to_writable_folder or "/tmp"
+        cls.path_to_writable_folder = cls.path_to_writable_folder or default_path_to_writable_folder
         cls.path_to_workdir = f"{cls.path_to_writable_folder}/test_spkmeans_{int(time.time())}"
         os.makedirs(f"{cls.path_to_workdir}", exist_ok=False)
         subprocess.check_output(

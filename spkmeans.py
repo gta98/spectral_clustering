@@ -47,11 +47,13 @@ def main():
 
 def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
     if goal == 'spk':
-        L_norm = spkmeansmodule.full_lnorm(datapoints)
-        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
-        k = k or spkmeansmodule.full_calc_k(eigenvalues)
-        U = [x[:k] for x in eigenvectors]
-        T = spkmeansmodule.normalize_matrix_by_rows(U)
+        #L_norm = spkmeansmodule.full_lnorm(datapoints)
+        #eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
+        #k = k or spkmeansmodule.full_calc_k(eigenvalues)
+        #U = [x[:k] for x in eigenvectors]
+        #T = spkmeansmodule.normalize_matrix_by_rows(U)
+        T = spkmeansmodule.full_spk_1_to_5(datapoints)
+        k = k or len(T[0])
         T_indexed = [[idx]+row for idx,row in enumerate(T)]
         results = calc_kmeanspp(k, T_indexed)
     elif goal == 'wam':
