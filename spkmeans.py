@@ -9,13 +9,10 @@ from enum import Enum
 from typing import List, Union, NoReturn, Optional
 import numpy as np
 
-
-CHANGE_TO_TRUE_BEFORE_ASSIGNMENT = False
-
-FLAG_PRODUCTION = CHANGE_TO_TRUE_BEFORE_ASSIGNMENT
-FLAG_DEBUG = not FLAG_PRODUCTION
+FLAG_DEBUG = bool(int(os.environ.get('FLAG_DEBUG','0')))
 FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
 FLAG_VERBOSE_ERRORS = True and FLAG_DEBUG
+FLAG_EXIT_GRACEFULLY = False or not FLAG_DEBUG
 
 MSG_ERR_INVALID_INPUT = "Invalid Input!"
 MSG_ERR_GENERIC = "An Error Has Occurred"
@@ -65,9 +62,9 @@ def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> U
         results = spkmeansmodule.full_lnorm(datapoints)
     elif goal == 'jacobi':
         symmetric_matrix = datapoints # not actually datapoints
-        assertd(symmetric_matrix.shape[0] == symmetric_matrix.shape[1]) # should've been checked
+        #assertd(symmetric_matrix.shape[0] == symmetric_matrix.shape[1]) # should've been checked
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi(symmetric_matrix)
-        results = eigenvalues + eigenvectors
+        results = [eigenvalues] + eigenvectors
     else:
         raise InvalidInputTrigger("Invalid goal specified!")
     return results
@@ -186,11 +183,9 @@ def get_data_from_cmd():
     def _read_data_as_np(file_name: str) -> np.ndarray:
         _validate_input_filename(file_name)
         path_file = os.path.join(os.getcwd(), file_name)
-        df = pd.read_csv(path_file, header=None).rename({0: "index"}, axis=1)
-        df_sorted = df.sort_values('index')
-        #df_sorted.drop('index', inplace=True, axis=1)
-        data = df_sorted.to_numpy()
-        return data
+        df = pd.read_csv(path_file, header=None)
+        data = df.to_numpy()
+        return data, path_file
 
     def _verify_params_make_sense(k: int, goal: str, data: np.ndarray):
         assertd(data.ndim == 2)
@@ -217,14 +212,15 @@ def get_data_from_cmd():
                 raise GenericErrorTrigger("Datapoints number of dimensions must be at least 1")
         elif goal in {'jacobi'}:
             if k != None:
-                raise InvalidInputTrigger(f"3 parameters specified, did not expect k for goal {goal}")
+                #raise InvalidInputTrigger(f"3 parameters specified, did not expect k for goal {goal}")
+                pass
             if d != n:
                 raise GenericErrorTrigger(f"Jacobi expects a symmetric matrix, but n != d ({n} != {d})")
     
     k, goal, file_name = _get_cmd_args()
-    datapoints = _read_data_as_np(file_name)
+    datapoints, path_file = _read_data_as_np(file_name)
     _verify_params_make_sense(k, goal, datapoints)
-    return k, goal, datapoints
+    return k, goal, path_file
 
 
 def exit_gracefully_with_err(err: Exception):
@@ -240,11 +236,10 @@ def exit_gracefully_with_err(err: Exception):
 
 
 if __name__ == '__main__':
-    if not CHANGE_TO_TRUE_BEFORE_ASSIGNMENT:
-        print("===== WARNING =====")
-        print("      MAKE SURE YOU CHANGE CHANGE_TO_TRUE_BEFORE_ASSIGNMENT TO TRUE BEFORE ASSIGNMENT")
-        print("      OTHERWISE, YOU WILL GET DEBUG BEHAVIOR")
-    try:
+    if FLAG_EXIT_GRACEFULLY:
+        try:
+            main()
+        except Exception as e:
+            exit_gracefully_with_err(e)
+    else:
         main()
-    except Exception as e:
-        exit_gracefully_with_err(e)

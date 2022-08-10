@@ -11,8 +11,22 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat);
 static PyObject* Mat_to_PyListListFloat(mat_t* mat);
 static PyObject* MatDiag_to_PyListFloat(mat_t* mat);
 
+static mat_t* parse_mat_from_args(PyObject* args) {
+#ifndef QUICK_TESTING
+    char* path;
+    PyObject* py_path;
+    mat_t* data;
+    status_t result;
 
-static PyObject* full_wam(PyObject* self, PyObject* args) {
+    if (!PyArg_ParseTuple(args, "O", &py_path)) return NULL;
+
+    /* explicit casting to discard const safely */
+    path = (char*) PyUnicode_AsUTF8(py_path);
+    if (!path || PyErr_Occurred()) return NULL;
+    result = read_data(&data, path);
+    Py_DECREF(py_path);
+    if (result != SUCCESS) return NULL;
+#else
     PyObject* py_data;
     PyObject* py_result;
     mat_t* data;
@@ -23,6 +37,18 @@ static PyObject* full_wam(PyObject* self, PyObject* args) {
     }
 
     data = PyListListFloat_to_Mat(py_data);
+    if (data == NULL) return NULL;
+#endif
+
+    return data;
+}
+
+static PyObject* full_wam(PyObject* self, PyObject* args) {
+    mat_t* data;
+    mat_t* result;
+    PyObject* py_result;
+
+    data = parse_mat_from_args(args);
     if (data == NULL) return NULL;
 
     result = calc_full_wam(data);
@@ -34,16 +60,11 @@ static PyObject* full_wam(PyObject* self, PyObject* args) {
 }
 
 static PyObject* full_ddg(PyObject* self, PyObject* args) {
-    PyObject* py_data;
-    PyObject* py_result;
     mat_t* data;
     mat_t* result;
+    PyObject* py_result;
 
-    if (!PyArg_ParseTuple(args, "O", &py_data)) {
-        return NULL;
-    }
-
-    data = PyListListFloat_to_Mat(py_data);
+    data = parse_mat_from_args(args);
     if (data == NULL) return NULL;
 
     result = calc_full_ddg(data);
@@ -55,16 +76,11 @@ static PyObject* full_ddg(PyObject* self, PyObject* args) {
 }
 
 static PyObject* full_lnorm(PyObject* self, PyObject* args) {
-    PyObject* py_data;
-    PyObject* py_result;
     mat_t* data;
     mat_t* result;
+    PyObject* py_result;
 
-    if (!PyArg_ParseTuple(args, "O", &py_data)) {
-        return NULL;
-    }
-
-    data = PyListListFloat_to_Mat(py_data);
+    data = parse_mat_from_args(args);
     if (data == NULL) return NULL;
 
     result = calc_full_lnorm(data);
@@ -76,7 +92,6 @@ static PyObject* full_lnorm(PyObject* self, PyObject* args) {
 }
 
 static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
-    PyObject* py_data;
     PyObject* py_result_vectors;
     PyObject* py_result_values;
     PyObject* py_result_tuple;
@@ -85,7 +100,6 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     mat_t* result_values;
     status_t status;
 
-    py_data = NULL;
     py_result_vectors = NULL;
     py_result_values = NULL;
     py_result_tuple = NULL;
@@ -95,11 +109,7 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
 
     /*printd("======EEEEEE===========\n");*/
 
-    if (!PyArg_ParseTuple(args, "O", &py_data)) {
-        goto set_tuple_failed_parse;
-    }
-
-    data = PyListListFloat_to_Mat(py_data);
+    data = parse_mat_from_args(args);
     if (data == NULL) goto set_tuple_failed_malloc;
 
     result_vectors = NULL, result_values = NULL;
@@ -143,9 +153,6 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     jacobi_failed_main:
     goto free_vectors_values_failure;
     jacobi_failed_sort:
-    goto free_vectors_values_failure;
-    set_tuple_failed_parse:
-    py_result_tuple = PyErr_Occurred();
     goto free_vectors_values_failure;
     set_tuple_failed_malloc:
     py_result_tuple = PyErr_NoMemory();

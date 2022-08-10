@@ -59,7 +59,10 @@ class TestIntegrationBase():
     @classmethod
     def compile_c_python(cls) -> str:
         # compile c (python module)
-        subprocess.check_output(["python3", "setup.py", "build_ext", "--inplace"], cwd=cls.path_to_workdir)
+        subprocess.check_output(
+            ["python3", "setup.py", "build_ext", "--inplace"],
+            cwd=cls.path_to_workdir,
+            env=dict(os.environ, FLAG_DEBUG='1'))
         return f"{cls.path_to_workdir}/spkmeans.py"
     
     @classmethod
@@ -144,13 +147,14 @@ def mat_to_str(mat: List[List[float]]) -> str:
     return '\n'.join([','.join([str(y) for y in x]) for x in mat]) + '\n'
 
 def str_to_mat(mat_str: str) -> List[List[float]]:
+    #print(f"caught mat str:\n{mat_str}\nmat_str_end")
     def filter_out_junk_chars(s:str):
         t = ""
         for c in s:
             if c in {',','.','\n','-','+','0','1','2','3','4','5','6','7','8','9'}:
                 t += c
         return t
-    mat_str = filter_out_junk_chars(mat_str)
+    #mat_str = filter_out_junk_chars(mat_str)
     mat = mat_str.split("\n")
     mat = [line.strip() for line in mat if line.strip() != ""]
     mat = [line.split(",") for line in mat]

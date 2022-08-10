@@ -25,3 +25,5 @@ cd $WORKDIR/..
 zip -r $FOLDERNAME.zip $FOLDERNAME
 popd
 cp $WORKDIR/../$FOLDERNAME.zip $SAVEDIR
+
+echo "Saved submission in $SAVEDIR"
