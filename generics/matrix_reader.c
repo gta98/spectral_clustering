@@ -159,6 +159,7 @@ file_read_enum FILE_get_next_num(FILE* fh, double* num) {
     long loc_first_nonzero, loc_dot/*, loc_last_nonzero*/;
     bool is_signed;
     bool is_negative;
+    bool had_e;
     int count_successfully_fscanned;
 
     anything_left_to_read = FILE_skip_meaningless(fh);
@@ -169,6 +170,7 @@ file_read_enum FILE_get_next_num(FILE* fh, double* num) {
     loc_start = ftell(fh);
     is_signed = false;
     is_negative = false;
+    had_e = false;
     loc_dot = -1;
     loc_first_nonzero = -1;
     do {
@@ -196,6 +198,12 @@ file_read_enum FILE_get_next_num(FILE* fh, double* num) {
         else if ((c == ',') || (c == '\n') || (c == EOF)) {
             /* finished reading entire number */
             break;
+        } else if ((c == 'e') || (c == 'E')) {
+            had_e = true;
+        } else if (((c == '-') || (c == '+')) && had_e) {
+            /* may god bE with mE */
+            /* prevent throwing invalid */
+            /* this is not meant to be completely failsafe */
         }
         else {
             return INVALID_NUMBER_NONNUMERIC;
@@ -206,7 +214,7 @@ file_read_enum FILE_get_next_num(FILE* fh, double* num) {
     fseek(fh, loc_start, SEEK_SET);
 
     if (is_signed) {
-        /* we will read, and then flip */
+        /* we will read, and then (maybe) flip */
         fseek(fh, 1, SEEK_CUR);
     }
 
