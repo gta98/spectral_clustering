@@ -39,7 +39,7 @@ class TestIntegrationBase():
         subprocess.check_output(
             ["bash", f"{cls.path_to_repo_folder}/submit.sh"],
             cwd=cls.path_to_repo_folder,
-            env=dict(os.environ, SAVEDIR=cls.path_to_workdir)
+            env=dict(os.environ, SAVEDIR=cls.path_to_workdir, REPODIR=cls.path_to_repo_folder)
         )
         os.chdir(cls.path_to_workdir)
         os.system(f"unzip *.zip; rm *.zip")

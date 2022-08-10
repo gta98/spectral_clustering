@@ -1,4 +1,4 @@
-pushd .
+REPODIR=${REPODIR:-'.'}
 SAVEDIR=${SAVEDIR:-'.'}
 
 ID1="REDACTED"
@@ -12,17 +12,16 @@ mkdir -p $WORKDIR
 mkdir $WORKDIR/generics
 mkdir $WORKDIR/algorithms
 
-cp -r *.py $WORKDIR
-cp -r *.c $WORKDIR
-cp -r *.h $WORKDIR
-cp -r generics/*.c $WORKDIR/generics
-cp -r generics/*.h $WORKDIR/generics
-cp -r algorithms/*.c $WORKDIR/algorithms
-cp -r algorithms/*.h $WORKDIR/algorithms
-cp -r comp.sh $WORKDIR
+cp -r $REPODIR/*.py $WORKDIR
+cp -r $REPODIR/*.c $WORKDIR
+cp -r $REPODIR/*.h $WORKDIR
+cp -r $REPODIR/generics/*.c $WORKDIR/generics
+cp -r $REPODIR/generics/*.h $WORKDIR/generics
+cp -r $REPODIR/algorithms/*.c $WORKDIR/algorithms
+cp -r $REPODIR/algorithms/*.h $WORKDIR/algorithms
+cp -r $REPODIR/comp.sh $WORKDIR
 
 cd $WORKDIR/..
-echo "I am in $(pwd) and foldername is ${FOLDERNAME}, savedir is ${SAVEDIR}"
 zip -r $FOLDERNAME.zip $FOLDERNAME
 popd
 cp $WORKDIR/../$FOLDERNAME.zip $SAVEDIR
