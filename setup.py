@@ -8,7 +8,7 @@ cwd = os.path.dirname(
             os.path.abspath(os.path.dirname(__file__)) ))
 
 PATH_SRC = os.environ.get('PATH_SRC') or f"{cwd}/spkmeansmodule"
-PATH_OUT = os.environ.get('PATH_OUT') or f"{cwd}/output"
+PATH_OUT = os.environ.get('PATH_OUT') or f"{cwd}"
 
 PRECONFIGURED_CFLAGS = sysconfig.get_config_var('CFLAGS').split()
 try:

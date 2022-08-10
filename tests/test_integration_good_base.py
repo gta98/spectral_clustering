@@ -8,7 +8,7 @@ import subprocess
 import os
 import numpy as np
 from test_integration_base import TestIntegrationBase, random_blob, random_blob_symmetric, str_to_mat
-import utils as spkmeansmodule_ref
+import spkmeansref as spkmeansmodule_ref
 import random
 import inspect
 

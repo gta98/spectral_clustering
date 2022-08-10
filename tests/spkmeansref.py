@@ -1,3 +1,6 @@
+"""
+This module provides reference methods that are meant to replicate spkmeansmodule
+"""
 
 from cmath import inf
 from ctypes.wintypes import DWORD
@@ -5,19 +8,7 @@ from typing import List, Tuple, NoReturn, Union
 import numpy as np
 import os
 import sys
-import pandas as pd
-import mykmeanssp
 from definitions import *
-
-def assertd(condition:bool) -> Union[None, NoReturn]:
-    assert(condition)
-
-def sign(num: int) -> int:
-    assertd(num != np.nan)
-    if num == 0:
-        return 1
-    else:
-        return np.sign(num)
 
 def can_convert_to_list_of_list(A: np.ndarray) -> bool:
     if type(A) != np.ndarray:

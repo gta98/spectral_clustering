@@ -19,7 +19,7 @@ class TestIntegrationBase():
     @classmethod
     def setUpClass(cls) -> None:
         cls.setup_workdir()
-        os.environ['PATH_SRC'] = f"{cls.path_to_workdir}/c"
+        os.environ['PATH_SRC'] = f"{cls.path_to_workdir}"
         os.environ['PATH_OUT'] = f"{cls.path_to_workdir}"
         cls.path_to_executable: str = dict()
         cls.compile()

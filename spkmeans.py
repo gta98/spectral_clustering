@@ -3,11 +3,49 @@ import sys
 from typing import List,NoReturn
 import numpy as np
 import pandas as pd
-import mykmeanssp
-from kmeans_pp import calc_kmeanspp
-from utils import *
-import spkmeansmodule
 from definitions import *
+import spkmeansmodule
+import mykmeanssp
+from enum import Enum
+from typing import List, Union, NoReturn, Optional
+import numpy as np
+
+
+CHANGE_TO_TRUE_BEFORE_ASSIGNMENT = False
+
+FLAG_PRODUCTION = CHANGE_TO_TRUE_BEFORE_ASSIGNMENT
+FLAG_DEBUG = not FLAG_PRODUCTION
+FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
+FLAG_VERBOSE_ERRORS = True and FLAG_DEBUG
+
+MSG_ERR_INVALID_INPUT = "Invalid Input!"
+MSG_ERR_GENERIC = "An Error Has Occurred"
+
+INFINITY = float('inf')
+JACOBI_MAX_ROTATIONS = 100
+JACOBI_EPSILON = 1e-5
+KMEANS_EPSILON = 1e-5 # FIXME - what should this be? 0?
+KMEANS_MAX_ITER = 300 # this was verified to be 300
+
+class InvalidInputTrigger(ValueError): pass
+class GenericErrorTrigger(Exception): pass
+
+class Goal(Enum):
+    WAM = wam = 1
+    DDG = ddg = 2
+    LNORM = lnorm = 3
+    JACOBI = jacobi = 4
+    SPK = spk = 5
+
+def assertd(condition:bool) -> Union[None, NoReturn]:
+    assert(condition)
+
+def sign(num: int) -> int:
+    assertd(num != np.nan)
+    if num == 0:
+        return 1
+    else:
+        return np.sign(num)
 
 
 def main():
@@ -18,11 +56,11 @@ def main():
     print('\n'.join([','.join(["%.4f"%y for y in x]) for x in results]))
 
 
-def get_results(k: Union[int,None], goal: Goal, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
+def get_results(k: Optional[int], goal: Goal, datapoints: List[List[float]]) -> Union[List[List[float]],NoReturn]:
     if goal == 'spk':
         L_norm = spkmeansmodule.full_lnorm(datapoints)
         eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
-        k = spkmeansmodule.full_calc_k(eigenvalues)
+        k = k or spkmeansmodule.full_calc_k(eigenvalues)
         U = [x[:k] for x in eigenvectors]
         T = spkmeansmodule.normalize_matrix_by_rows(U)
         results = calc_kmeanspp(k, T)
@@ -40,6 +78,83 @@ def get_results(k: Union[int,None], goal: Goal, datapoints: List[List[float]]) -
     else:
         raise InvalidInputTrigger("Invalid goal specified!")
     return results
+
+
+def calc_kmeanspp(k, datapoints):
+    np.random.seed(0)
+    fit_params = extract_fit_params(k, KMEANS_MAX_ITER, KMEANS_EPSILON, datapoints)
+    results = KmeansAlgorithm(*fit_params)
+    initial_centroids_indices_as_written = [int(fit_params[0][i][0]) for i in range(len(fit_params[0]))]
+    return initial_centroids_indices_as_written + results
+
+
+def extract_fit_params(*data_from_cmd, should_print=True):
+    k, max_iter, eps, datapoints_list = data_from_cmd
+    initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
+    initial_centroids_indices = select_actual_centroids(datapoints_list, initial_centroids_list)
+    datapoints_list = [list(x) for x in list(datapoints_list[:,1:])] # remove index, convert to List[List[float]] for C
+    dims_count = len(datapoints_list[0])
+    point_count = len(datapoints_list)
+    return (
+        initial_centroids_indices,
+        datapoints_list,
+        dims_count,
+        k,
+        point_count,
+        max_iter,
+        eps
+    )
+
+
+def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
+    np.random.seed(0)
+    x = np.array(x)
+    N, d = x.shape
+    u = [None for _ in range(k)]
+    u_idx = [-1 for _ in range(N)]
+    P = [0 for _ in range(N)]
+    D = [float('inf') for _ in range(N)]
+
+    i = 0
+    selection = np.random.choice(x[:,0])
+    u[0] = x[np.where(x[:,0]==selection)]
+
+    while (i+1) < k:
+        for l in range(N):
+            x_l = x[l] # remove index
+            min_square_dist = float('inf')
+            for j in range(0,i+1):
+                u_j = u[j][0,:] # u.shape = (1,u.shape[0]) -> (u.shape[0],)
+                square_dist = np.sum((x_l[1:] - u_j[1:])**2) # first item is an index
+                min_square_dist = min(square_dist, min_square_dist)
+            D[l] = min_square_dist
+        D_sum = sum(D)
+        if D_sum <= 0:
+            raise Exception(f"Somehow reached D_sum = {D_sum}, but P values must be nonnegative and finite")
+        P = D/D_sum
+
+        i += 1
+        selection = np.random.choice(x[:,0], p=P)
+        u[i] = x[np.where(x[:,0]==selection)]
+        continue
+
+    centroids_without_padding = [a[0] for a in u]
+    return centroids_without_padding
+
+
+def select_actual_centroids(data: List[List[float]], initial_centroids_list: List[List[float]]) -> List[int]:
+    # incase we have duplicates, etc...
+    initial_centroids_indices_actual = [None for centroid in initial_centroids_list]
+    for i, centroid in enumerate(initial_centroids_list):
+        loc = np.where(np.all(data==centroid,axis=1))[0] #[0] because this returns a tuple
+        if len(loc) == 0: # or len(loc)>=2?
+            raise GenericErrorTrigger(f"There should only be one match among the datapoints for every initial centroid, but one got {len(loc)} matches")
+        initial_centroids_indices_actual[i] = loc[0]
+    return initial_centroids_indices_actual
+
+
+def KmeansAlgorithm(*fit_params) -> List[List[float]]:
+    return mykmeanssp.fit(*fit_params)
 
 
 def get_data_from_cmd():

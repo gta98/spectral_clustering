@@ -13,7 +13,7 @@ import math
 import time
 from sklearn.datasets import make_blobs
 import spkmeansmodule
-import utils as spkmeans_utils
+import spkmeansref as spkmeans_utils
 import re
 import os
 
