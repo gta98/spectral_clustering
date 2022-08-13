@@ -37,21 +37,23 @@ def can_convert_to__np_matrix(A: List[List[float]]):
     if type(A) == np.ndarray:
         return True
     if type(A) != list:
-        print(f"NOT A LIST BUT A {type(A)}")
+        raise ValueError(f"NOT A LIST BUT A {type(A)}")
         return False
     if type(A[0]) == list:
         for i in range(len(A)):
             if type(A[i]) != list:
-                print(f"A in index {i} is not a list but a {type(A[i])}, A is {A}")
+                raise ValueError(f"A in index {i} is not a list but a {type(A[i])}, A is {A}")
                 return False
             if len(A[i]) != len(A[0]):
-                print("Length is not identical")
+                raise ValueError("Length is not identical")
                 return False
-    elif type(A[0]) == float:
+    elif type(A[0]) in {float,int}:
         for i in range(len(A)):
-            if type(A[i]) != float:
+            if type(A[i]) != type(A[0]):
+                raise ValueError(f'Not a {type(A[0])} in index {i}: but a {type(A[i])}')
                 return False
     else:
+        raise ValueError(f'Unrecognized type {type(A[0])}')
         return False
     return True
 
@@ -62,7 +64,7 @@ def convert__np_matrix__to__list_of_lists(A: np.ndarray) -> List[List[float]]:
 
 def convert__list_of_lists__to__np_matrix(A: List[List[float]]) -> np.ndarray:
     if not can_convert_to__np_matrix(A):
-        raise ValueError("Cannot convert A to np matrix because: ")
+        raise ValueError(f"Cannot convert A to np matrix because: ")
     B = np.array(A)
     return B
 
@@ -303,7 +305,7 @@ def full_calc_k(datapoints: np.ndarray) -> np.ndarray:
     raise Exception("We were supposed to return")
 
 
-@wrap__ndarray_to_list_of_lists
+#@wrap__ndarray_to_list_of_lists
 def numpy_to_numpy(datapoints: np.ndarray, save_path: str) -> np.ndarray:
     # takes datapoints as np array, returns datapoints as np array
     # 1. Py converts numpy into List[List[float]]
@@ -321,7 +323,7 @@ def numpy_to_numpy(datapoints: np.ndarray, save_path: str) -> np.ndarray:
     spkmeansmodule.test_write_data(datapoints, save_path) # 2, 3, 4
     datapoints_tag = spkmeansmodule.test_read_data(save_path) # 5, 6, 7
     #datapoints_tag = datapoints
-    return datapoints_tag # 8
+    return np.array(datapoints) # 8
 
 
 def full_wam(datapoints: List[List[float]]) -> List[List[float]]:

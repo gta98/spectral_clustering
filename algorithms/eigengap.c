@@ -68,21 +68,31 @@ uint calc_k(mat_t* eigenvalues) {
     uint i, n, half_n;
     uint max_eigengap_idx;
     real max_eigengap_val, eigengap_val;
-    assertd(is_square(eigenvalues));
     /*assertd(is_diagonal(eigenvalues));*/
-    /*assertd(eigenvalues->h == 1);
-    assertd(eigenvalues->w >= 2);*/
+    /*assertd(eigenvalues->h == 1);*/
     n = eigenvalues->w;
     half_n = floor(((double)n)/2);
     assertd(half_n >= 1);
     max_eigengap_idx = -1;
     max_eigengap_val = -1;
-    for (i=0; i<half_n; i++) {
-        eigengap_val = mat_get(eigenvalues,i,i)-mat_get(eigenvalues,i+1,i+1);
-        assertd(eigengap_val>=0);
-        if (eigengap_val > max_eigengap_val) {
-            max_eigengap_idx = i;
-            max_eigengap_val = eigengap_val;
+    if (eigenvalues->h > 1) {
+        assertd_is_square(eigenvalues);
+        for (i=0; i<half_n; i++) {
+            eigengap_val = mat_get(eigenvalues,i,i)-mat_get(eigenvalues,i+1,i+1);
+            assertd(eigengap_val>=0);
+            if (eigengap_val > max_eigengap_val) {
+                max_eigengap_idx = i;
+                max_eigengap_val = eigengap_val;
+            }
+        }
+    } else if (eigenvalues->h == 1) {
+        for (i=0; i<half_n; i++) {
+            eigengap_val = mat_get(eigenvalues,0,i)-mat_get(eigenvalues,0,i+1);
+            assertd(eigengap_val>=0);
+            if (eigengap_val > max_eigengap_val) {
+                max_eigengap_idx = i;
+                max_eigengap_val = eigengap_val;
+            }
         }
     }
     return max_eigengap_idx+1;

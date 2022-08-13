@@ -15,11 +15,6 @@ class TestIntegrationGoodPython(TestIntegrationGoodBase, unittest.TestCase):
     def compile(cls):
         path_to_executable = cls.compile_c_python()
         cls.path_to_executable = path_to_executable
-        path_to_executable_parent = '/'.join(path_to_executable.split("/")[:-1])
-        print(f"exec parent: {path_to_executable_parent}")
-        import sys
-        sys.path.insert(0, path_to_executable_parent)
-        os.system(f"cp {path_to_executable_parent}/*.so .")
     
     def run_with_data(self,
             goal: str, data: List[List[float]],k=None) -> str:

@@ -6,9 +6,11 @@ from math import inf
 import time
 import subprocess
 import os
+import sys
 import numpy as np
 from sklearn.datasets import make_blobs
 import random
+import inspect
 from subprocess import CalledProcessError
 
 default_path_to_writable_folder = "/tmp"
@@ -46,6 +48,8 @@ class TestIntegrationBase():
         os.chdir(cls.path_to_workdir)
         os.system(f"unzip *.zip; rm *.zip")
         os.system(f"mv */* .")
+        sys.path.insert(0, cls.path_to_workdir)
+        os.system(f"cp {cls.path_to_workdir}/*.so .")
 
     @abstractclassmethod 
     def compile(cls) -> None:
@@ -65,6 +69,10 @@ class TestIntegrationBase():
             ["python3", "setup.py", "build_ext", "--inplace"],
             cwd=cls.path_to_workdir,
             env=dict(os.environ, FLAG_DEBUG='1'))
+        import spkmeansmodule
+        cls.spkmeansmodule = spkmeansmodule
+        import mykmeanssp
+        cls.kmeans_pp = mykmeanssp
         return f"{cls.path_to_workdir}/spkmeans.py"
     
     @classmethod
@@ -78,6 +86,18 @@ class TestIntegrationBase():
             path_to_executable: str,
             *extras: Optional[List[str]]) -> str:
         return run_with_args(path_to_executable, *extras, path_to_workdir=cls.path_to_workdir)
+
+    def assert_mat_dist(self, real: np.ndarray, calc: np.ndarray, comments="undefined"):
+        real, calc = np.round(np.array(real),4), np.round(np.array(calc),4)
+        self.assertEqual(real.shape, calc.shape)
+        dist = min(
+            np.mean(np.abs(real-calc)) / np.mean(np.abs(real)),
+            np.mean(np.square(real-calc))
+        )
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        caller = calframe[1][3]
+        self.assertLess(dist, 1e-5, f"workdir is {self.path_to_workdir}, comments: \"{comments}\"\ncaller is {caller}\nREAL:\n{real}\n\nFAKE:\n{calc}")
 
 
 def run_with_data(

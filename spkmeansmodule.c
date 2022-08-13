@@ -24,12 +24,12 @@ static mat_t* parse_mat_from_args(PyObject* args) {
         path = (char*) PyUnicode_AsUTF8(py_data);
         if (!path || PyErr_Occurred()) return NULL;
         result = read_data(&data, path);
-        Py_DECREF(py_data);
+        /*Py_DECREF(py_data);*/
         if (result != SUCCESS) return NULL;
         return data;
     } else if (PyList_Check(py_data)) {
         data = PyListListFloat_to_Mat(py_data);
-        Py_DECREF(py_data);
+        /*Py_DECREF(py_data);*/
         return data;
     } else {
         return NULL;
@@ -488,7 +488,7 @@ static PyObject* test_read_data(PyObject* self, PyObject* args) {
     /* explicit casting to discard const safely */
     path = (char*) PyUnicode_AsUTF8(py_path);
     result = read_data(&mat, path);
-    Py_DECREF(py_path);
+    /*Py_DECREF(py_path);*/
     if (result != SUCCESS) {
         return PyErr_Occurred();
     }
@@ -517,7 +517,7 @@ static PyObject* test_write_data(PyObject* self, PyObject* args) {
     path = (char*) PyUnicode_AsUTF8(py_path);
 
     result = write_data(mat, path);
-    Py_DECREF(py_path);
+    /*Py_DECREF(py_path);*/
 
     if (result != SUCCESS) {
         return PyErr_Occurred();
