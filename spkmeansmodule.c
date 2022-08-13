@@ -12,35 +12,40 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat);
 static PyObject* MatDiag_to_PyListFloat(mat_t* mat);
 
 static mat_t* parse_mat_from_args(PyObject* args) {
-#ifndef QUICK_TESTING
+    PyObject* py_data;
     char* path;
-    PyObject* py_path;
     mat_t* data;
     status_t result;
 
-    if (!PyArg_ParseTuple(args, "O", &py_path)) return NULL;
+    if (!PyArg_ParseTuple(args, "O", &py_data)) return NULL;
+    if (PyErr_Occurred()) return NULL;
 
-    /* explicit casting to discard const safely */
-    path = (char*) PyUnicode_AsUTF8(py_path);
-    if (!path || PyErr_Occurred()) return NULL;
-    result = read_data(&data, path);
-    Py_DECREF(py_path);
-    if (result != SUCCESS) return NULL;
-#else
-    PyObject* py_data;
-    PyObject* py_result;
-    mat_t* data;
-    mat_t* result;
-
-    if (!PyArg_ParseTuple(args, "O", &py_data)) {
+    if (PyUnicode_Check(py_data)) {
+        path = (char*) PyUnicode_AsUTF8(py_data);
+        if (!path || PyErr_Occurred()) return NULL;
+        result = read_data(&data, path);
+        Py_DECREF(py_data);
+        if (result != SUCCESS) return NULL;
+        return data;
+    } else if (PyList_Check(py_data)) {
+        data = PyListListFloat_to_Mat(py_data);
+        Py_DECREF(py_data);
+        return data;
+    } else {
         return NULL;
     }
+}
 
-    data = PyListListFloat_to_Mat(py_data);
-    if (data == NULL) return NULL;
-#endif
+static status_t parse_mat_and_k_from_args(PyObject* args, mat_t** data, uint* k) {
+    char* path;
+    status_t result;
 
-    return data;
+    if (!PyArg_ParseTuple(args, "si", &path, k)) return ERROR_FORMAT;
+    if (PyErr_Occurred()) return ERROR_FORMAT;
+
+    result = read_data(data, path);
+    if (result != SUCCESS) return result;
+    return SUCCESS;
 }
 
 static PyObject* full_wam(PyObject* self, PyObject* args) {
@@ -435,46 +440,36 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     /*py_result_tuple = NULL;
     py_k = NULL;*/
 
-    data = parse_mat_from_args(args);
-    if (data == NULL) goto spk_had_a_problem;
+    status = parse_mat_and_k_from_args(args, &data, &k); /* NEED TO FREE data */
+    if (status != SUCCESS) goto spk_tuple_failed_malloc;
 
-    L_norm = calc_full_lnorm(data);
-    calc_jacobi(L_norm, &eigenvectors, &eigenvalues);
+    L_norm = calc_full_lnorm(data); /* NEED TO FREE L_norm */
+    
+    calc_jacobi(L_norm, &eigenvectors, &eigenvalues); /* NEED TO FREE eigenvectors, eigenvalues */
     if (!eigenvectors || !eigenvalues) goto spk_had_a_problem;
     status = sort_cols_by_vector_desc(eigenvectors, eigenvalues);
     if (status != SUCCESS) goto spk_had_a_problem;
-    k = calc_k(eigenvalues);
-    printd("============Got k: %d======\n",k);
+    if (k==0) k = calc_k(eigenvalues);
     U = eigenvectors;
     original_w = U->w;
-    U->w = original_w;
     mat_normalize_rows(U, U);
     py_T = Mat_to_PyListListFloat(U);
+    U->w = original_w;
     /*U->w = original_w;*/ /* not needed but just in case (mat_free) */
-
-    /*py_result_tuple = PyList_New(2);
-    if (!py_result_tuple || PyErr_Occurred()) goto spk_tuple_failed_malloc;
-    py_k = PyLong_FromUnsignedLong((unsigned long) k);
-    if (!py_k || PyErr_Occurred()) goto spk_tuple_failed_malloc;
-
-    PyList_SetItem(py_result_tuple, 0, py_k);
-    PyList_SetItem(py_result_tuple, 1, py_T);*/
 
     goto spk_free_and_return;
 
-    /*spk_tuple_failed_malloc:
-    if (py_k) Py_DECREF(py_k);
-    if (py_T) Py_DECREF(py_T);
-    if (py_result_tuple) Py_DECREF(py_result_tuple);*/
+    spk_tuple_failed_malloc:
+    /* set error here */
+    goto spk_free_and_return;
     spk_had_a_problem:
     /* set error here */
     goto spk_free_and_return;
     spk_free_and_return:
-    /*if (data) mat_free(&data);
-    if (result) mat_free(&result);
+    if (data) mat_free(&data);
     if (L_norm) mat_free(&L_norm);
     if (eigenvalues) mat_free(&eigenvalues);
-    if (eigenvectors) mat_free(&eigenvectors);*/
+    if (eigenvectors) mat_free(&eigenvectors);
     return py_T;
 }
 
