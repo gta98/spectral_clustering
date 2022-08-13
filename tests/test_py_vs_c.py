@@ -129,6 +129,12 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
         #self._compare_c_and_py('jacobi_sorted', make_compatible_blob_symmetric(10),
         #    spkmeans_utils.full_jacobi_sorted, self.spkmeansmodule.full_jacobi_sorted, self._comparator_jacobi)
     
+    def test_full_spk_1_to_5(self):
+        X = make_compatible_blob()
+        result = self.spkmeansmodule.full_spk_1_to_5(X, 0)
+        result_ref = spkmeans_utils.full_spk_1_to_5(X, 0)
+        self.assert_mat_dist(result_ref, result, "Spk")
+    
     def test_PTAP(self):
         n = 20
         A = make_compatible_blob(n,n)
@@ -199,8 +205,8 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
         np.random.shuffle(indices)
         indices = [int(x) for x in indices]
         B = spkmeans_utils.reorder_mat_cols_by_indices(A, indices)
-        print("Swapped rows on:")
-        print(B)
+        #print("Swapped rows on:")
+        #print(B)
         B_module = self.spkmeansmodule.reorder_mat_cols_by_indices(A, indices)
         relative_error = relative_error_centroids(B, B_module)
         self.assertLess(relative_error, 1e-5)
