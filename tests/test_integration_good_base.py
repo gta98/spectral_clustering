@@ -33,25 +33,25 @@ class TestIntegrationGoodBase(TestIntegrationBase):
         self.assertLess(dist, 1e-5, f"workdir is {self.path_to_workdir}, caller is {caller}\nREAL:\n{real}\n\nFAKE:\n{calc}")
 
     def test_wam(self):
-        blob = random_blob()
+        blob = random_blob('tiny')
         result = str_to_mat(self.run_with_data('wam', blob))
         result_ref = spkmeansmodule_ref.full_wam(blob)
         self.assert_mat_dist(result_ref, result)
     
     def test_ddg(self):
-        blob = random_blob()
+        blob = random_blob('tiny')
         result = str_to_mat(self.run_with_data('ddg', blob))
         result_ref = spkmeansmodule_ref.full_ddg(blob)
         self.assert_mat_dist(result_ref, result)
 
     def test_lnorm(self):
-        blob = random_blob()
+        blob = random_blob('tiny')
         result = str_to_mat(self.run_with_data('lnorm', blob))
         result_ref = spkmeansmodule_ref.full_lnorm(blob)
         self.assert_mat_dist(result_ref, result)
     
     def test_jacobi(self):
-        blob = random_blob_symmetric('small')
+        blob = random_blob_symmetric('tiny')
         result = str_to_mat(self.run_with_data('jacobi', blob))
         eigenvalues, eigenvectors = result[0], result[1:]
         eigenvalues_ref, eigenvectors_ref = spkmeansmodule_ref.full_jacobi(blob)

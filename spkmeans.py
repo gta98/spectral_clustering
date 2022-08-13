@@ -9,7 +9,7 @@ from enum import Enum
 from typing import List, Union, NoReturn, Optional
 import numpy as np
 
-FLAG_DEBUG = bool(int(os.environ.get('FLAG_DEBUG','0')))
+FLAG_DEBUG = True or bool(int(os.environ.get('FLAG_DEBUG','0')))
 FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
 FLAG_VERBOSE_ERRORS = True and FLAG_DEBUG
 FLAG_EXIT_GRACEFULLY = False or not FLAG_DEBUG
@@ -53,8 +53,9 @@ def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> U
         #U = [x[:k] for x in eigenvectors]
         #T = spkmeansmodule.normalize_matrix_by_rows(U)
         T = spkmeansmodule.full_spk_1_to_5(datapoints)
+        print(T)
         k = k or len(T[0])
-        T_indexed = [[idx]+row for idx,row in enumerate(T)]
+        T_indexed = np.array([[int(idx)]+row for idx,row in enumerate(T)])
         results = calc_kmeanspp(k, T_indexed)
     elif goal == 'wam':
         results = spkmeansmodule.full_wam(datapoints)
@@ -76,14 +77,15 @@ def calc_kmeanspp(k, datapoints):
     np.random.seed(0)
     fit_params = extract_fit_params(k, KMEANS_MAX_ITER, KMEANS_EPSILON, datapoints)
     results = KmeansAlgorithm(*fit_params)
-    initial_centroids_indices_as_written = [int(fit_params[0][i][0]) for i in range(len(fit_params[0]))]
-    return initial_centroids_indices_as_written + results
+    initial_centroids_indices_as_written = [int(fit_params[0][i]) for i in range(len(fit_params[0]))]
+    return [initial_centroids_indices_as_written] + results
 
 
 def extract_fit_params(*data_from_cmd, should_print=True):
     k, max_iter, eps, datapoints_list = data_from_cmd
     initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
     initial_centroids_indices = select_actual_centroids(datapoints_list, initial_centroids_list)
+    datapoints_list = np.array(datapoints_list)
     datapoints_list = [list(x) for x in list(datapoints_list[:,1:])] # remove index, convert to List[List[float]] for C
     dims_count = len(datapoints_list[0])
     point_count = len(datapoints_list)
@@ -199,13 +201,14 @@ def get_data_from_cmd():
         if goal in {'spk'}:
             if k == None:
                 raise InvalidInputTrigger(f"Only 2 parameters specified, expected integer k for goal {goal}")
-            if not (0 < k < n):
-                raise InvalidInputTrigger("The following must hold: 0 < k < n, but k={k} and n={n}")
+            if not (0 <= k < n):
+                raise InvalidInputTrigger("The following must hold: 0 <= k < n, but k={k} and n={n}")
             if (d - 1) < 1:
                 raise GenericErrorTrigger("Datapoints number of dimensions must be at least 1, not including dimension 0 (index)")
             if any([(not first_indice.is_integer()) or (not (0 <= int(first_indice) < n)) \
                     for first_indice in data[:,0]]):
-                raise GenericErrorTrigger(f"One of the datapoints is missing a valid index in its first dimension")
+                #raise GenericErrorTrigger(f"One of the datapoints is missing a valid index in its first dimension")
+                pass
         elif goal in {'wam', 'ddg', 'lnorm'}:
             if k != None:
                 #raise InvalidInputTrigger(f"3 parameters specified, did not expect k for goal {goal}")

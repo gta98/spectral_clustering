@@ -34,9 +34,24 @@ def can_convert_to_list_of_list(A: np.ndarray) -> bool:
     return True
 
 def can_convert_to__np_matrix(A: List[List[float]]):
+    if type(A) == np.ndarray:
+        return True
     if type(A) != list:
+        print("NOT A LIST")
         return False
-    if any([(type(x)!=list) or (len(x)!=len(A[0])) for x in A]):
+    if type(A[0]) == list:
+        for i in range(len(A)):
+            if type(A[i]) != list:
+                print(f"A in index {i} is not a list but a {type(A[i])}, A is {A}")
+                return False
+            if len(A[i]) != len(A[0]):
+                print("Length is not identical")
+                return False
+    elif type(A[0]) == float:
+        for i in range(len(A)):
+            if type(A[i]) != float:
+                return False
+    else:
         return False
     return True
 
@@ -47,9 +62,8 @@ def convert__np_matrix__to__list_of_lists(A: np.ndarray) -> List[List[float]]:
 
 def convert__list_of_lists__to__np_matrix(A: List[List[float]]) -> np.ndarray:
     if not can_convert_to__np_matrix(A):
-        raise ValueError("Cannot convert A to np matrix")
+        raise ValueError("Cannot convert A to np matrix because: ")
     B = np.array(A)
-    assertd(B.ndim == 2)
     return B
 
 def wrap__ndarray_to_list_of_lists(func):
@@ -57,9 +71,9 @@ def wrap__ndarray_to_list_of_lists(func):
         if np.ndarray in [type(x) for x in args]+[type(x) for x in kwargs.values()]:
             # working in numpy mode
             return func(*args, **kwargs)
-        _args = [(convert__list_of_lists__to__np_matrix(v) if can_convert_to__np_matrix(v) else v) \
+        _args = [(convert__list_of_lists__to__np_matrix(v)) \
                 for v in args]
-        _kwargs = {k: (convert__list_of_lists__to__np_matrix(v) if can_convert_to__np_matrix(v) else v) \
+        _kwargs = {k: (convert__list_of_lists__to__np_matrix(v)) \
                 for k,v in kwargs.items()}
         retval = func(*_args, **_kwargs)
         if can_convert_to_list_of_list(retval):
@@ -269,7 +283,7 @@ def calc_k(eigenvalues: np.array) -> np.ndarray:
     delta_max = np.max(delta_abs[:half_n])
     for i in range(half_n):
         if delta_abs[i] == delta_max:
-            return i
+            return i+1
     raise Exception("We were supposed to return")
 
 @wrap__ndarray_to_list_of_lists
@@ -285,7 +299,7 @@ def full_calc_k(datapoints: np.ndarray) -> np.ndarray:
     delta_max = np.max(delta_abs[:half_n])
     for i in range(half_n):
         if delta_abs[i] == delta_max:
-            return i
+            return i+1
     raise Exception("We were supposed to return")
 
 
@@ -337,6 +351,7 @@ def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[f
 
 
 def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
+    print(f"datapoints: {datapoints}")
     datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
     #print(f"py eigenvalues: {eigenvalues}")
@@ -351,5 +366,30 @@ def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List
 @wrap__ndarray_to_list_of_lists
 def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
     #print(U.shape)
+    print("U is:")
+    print(U)
     U_square_sum = np.sqrt(np.sum(np.square(U), axis=1))
-    return (U.transpose()/U_square_sum).transpose()
+    print("U_square_sum is:")
+    print(U_square_sum)
+    print("Printed U_square_sum")
+    normalized = (U.transpose()/U_square_sum).transpose()
+    print("NOrmalized:")
+    print(normalized)
+    print("Done")
+    return normalized
+
+
+@wrap__ndarray_to_list_of_lists
+def full_spk(datapoints: np.ndarray) -> np.ndarray:
+    print(f"spk type: {type(datapoints)}")
+    L_norm = full_lnorm(datapoints)
+    eigenvalues, eigenvectors = full_jacobi_sorted(L_norm)
+    k = calc_k(eigenvalues)
+    U = [x[:k] for x in eigenvectors]
+    T = normalize_matrix_by_rows(U)
+    T_indexed = [[idx]+row for idx,row in enumerate(T)]
+    print("T_indexed is:")
+    print(T_indexed)
+    from spkmeans import calc_kmeanspp
+    results = calc_kmeanspp(k, T_indexed)
+    return results

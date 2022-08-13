@@ -311,6 +311,7 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
     }
 
     h = mat->h, w = mat->w;
+    i=0, j=0;
 
     py_mat = PyList_New(h);
     if (!py_mat) {
@@ -320,13 +321,14 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
 
     for (i=0; i<h; i++) {
         py_row = PyList_New(w);
-        if (!py_row) goto error_malloc_mat_to_listlist;
+        if (!py_row || PyErr_Occurred()) goto error_malloc_mat_to_listlist;
 
         for (j=0; j<w; j++) {
             cell = mat_get(mat, i, j);
             py_cell = Py_BuildValue("d", cell);
             if (!py_cell || PyErr_Occurred()) {
                 printd("Could not build value!!! Numero uno\n");
+                goto error_malloc_mat_to_listlist;
             }
             PyList_SetItem(py_row, j, py_cell);
         }
@@ -420,6 +422,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     uint k;
     uint original_w;
     mat_t* U;
+    status_t status;
 
     data = NULL;
     result = NULL;
@@ -437,12 +440,17 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
 
     L_norm = calc_full_lnorm(data);
     calc_jacobi(L_norm, &eigenvectors, &eigenvalues);
+    if (!eigenvectors || !eigenvalues) goto spk_had_a_problem;
+    status = sort_cols_by_vector_desc(eigenvectors, eigenvalues);
+    if (status != SUCCESS) goto spk_had_a_problem;
     k = calc_k(eigenvalues);
+    printd("============Got k: %d======\n",k);
+    U = eigenvectors;
     original_w = U->w;
-    U->w = k;
+    U->w = original_w;
     mat_normalize_rows(U, U);
     py_T = Mat_to_PyListListFloat(U);
-    U->w = original_w; /* not needed but just in case (mat_free) */
+    /*U->w = original_w;*/ /* not needed but just in case (mat_free) */
 
     /*py_result_tuple = PyList_New(2);
     if (!py_result_tuple || PyErr_Occurred()) goto spk_tuple_failed_malloc;
@@ -462,12 +470,11 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     /* set error here */
     goto spk_free_and_return;
     spk_free_and_return:
-    if (data) mat_free(&data);
+    /*if (data) mat_free(&data);
     if (result) mat_free(&result);
     if (L_norm) mat_free(&L_norm);
     if (eigenvalues) mat_free(&eigenvalues);
-    if (eigenvectors) mat_free(&eigenvectors);
-    if (U) mat_free(&U);
+    if (eigenvectors) mat_free(&eigenvectors);*/
     return py_T;
 }
 

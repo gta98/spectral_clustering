@@ -88,6 +88,8 @@ setup(
                 "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
                 "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
+                "-Wno-error=unused-variable", # FIXME - REMOVE THIS
+                "-Wno-error=unused-but-set-variable", # FIXME - REMOVE THIS
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
                 f"-D FLAG_ASSERTD"

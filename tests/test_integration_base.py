@@ -9,6 +9,7 @@ import os
 import numpy as np
 from sklearn.datasets import make_blobs
 import random
+from subprocess import CalledProcessError
 
 default_path_to_writable_folder = "/tmp"
 
@@ -130,9 +131,12 @@ def run_with_args(
     args += extras
     timeout = kwargs.get('timeout', inf)
     # FIXME - implement timeout maybe
-    result = subprocess.check_output(args)
-    result_string = result.decode('utf-8')
-    return result_string
+    try:
+        result = subprocess.check_output(args)
+        result_string = result.decode('utf-8')
+        return result_string
+    except CalledProcessError as e:
+        raise Exception(f"Got CalledProcessError with {e.output}\n\tRun args were:\n\t{' '.join(e.cmd)}\n\t")
     
 def file_write_mat(path: str, mat: List[List[float]]) -> None:
     with open(path, 'w') as f:
@@ -176,8 +180,10 @@ def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
 
 def random_blob(size: str = None):
     if not size:
-        size = random.choice(['big','small','tiny'])
-    if size=='big':
+        size = random.choice(['max','big','small','tiny'])
+    if size=='max':
+        return make_compatible_blob(1000,10)
+    elif size=='big':
         return make_compatible_blob(int(np.random.randint(969,1010)),int(np.random.randint(8,69)))
     elif size == 'small':
         return make_compatible_blob(int(np.random.randint(8,13)),int(np.random.randint(3,6)))
