@@ -52,11 +52,14 @@ def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> U
         #k = k or spkmeansmodule.full_calc_k(eigenvalues)
         #U = [x[:k] for x in eigenvectors]
         #T = spkmeansmodule.normalize_matrix_by_rows(U)
-        T = spkmeansmodule.full_spk_1_to_5(datapoints)
-        print(T)
+        if not k: k=0
+        #print(f"Aboutta pass k=={k}")
+        T = spkmeansmodule.full_spk_1_to_5(datapoints, k)
         k = k or len(T[0])
         T_indexed = np.array([[int(idx)]+row for idx,row in enumerate(T)])
         results = calc_kmeanspp(k, T_indexed)
+        print(','.join([str(x) for x in results[0]]))
+        results = results[1:]
     elif goal == 'wam':
         results = spkmeansmodule.full_wam(datapoints)
     elif goal == 'ddg':

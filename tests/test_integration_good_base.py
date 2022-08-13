@@ -23,6 +23,7 @@ class TestIntegrationGoodBase(TestIntegrationBase):
 
     def assert_mat_dist(self, real: np.ndarray, calc: np.ndarray):
         real, calc = np.round(np.array(real),4), np.round(np.array(calc),4)
+        self.assertEqual(real.shape, calc.shape)
         dist = min(
             np.mean(np.abs(real-calc)) / np.mean(np.abs(real)),
             np.mean(np.square(real-calc))

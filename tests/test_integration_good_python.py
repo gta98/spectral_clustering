@@ -28,9 +28,13 @@ class TestIntegrationGoodPython(TestIntegrationGoodBase, unittest.TestCase):
     def test_spk(self):
         blob = random_blob('small')
         result = self.run_with_data('spk', blob, k=0)
-        print(result)
+        print("Result as follows:")
+        result = [line.strip().split(",") for line in result.split("\n") if line]
+        selected_indices = result[0]
+        result = result[1:]
         k = len(result[0])
-        result_ref = spkmeansref.full_spk(blob)
+        print(f"Gonna call full_spk with blob of type {type(blob)} and k=={k}")
+        result_ref = spkmeansref.full_spk(blob, k=0)
         k_ref = len(result_ref[0])
         self.assertEqual(k_ref, k)
         self.assert_mat_dist(result_ref, result)

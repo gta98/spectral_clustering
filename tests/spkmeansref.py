@@ -37,7 +37,7 @@ def can_convert_to__np_matrix(A: List[List[float]]):
     if type(A) == np.ndarray:
         return True
     if type(A) != list:
-        print("NOT A LIST")
+        print(f"NOT A LIST BUT A {type(A)}")
         return False
     if type(A[0]) == list:
         for i in range(len(A)):
@@ -379,17 +379,12 @@ def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
     return normalized
 
 
-@wrap__ndarray_to_list_of_lists
-def full_spk(datapoints: np.ndarray) -> np.ndarray:
-    print(f"spk type: {type(datapoints)}")
+#@wrap__ndarray_to_list_of_lists
+def full_spk(datapoints: List[List[float]], k: int) -> List[List[float]]:
+    datapoints = np.array(datapoints)
     L_norm = full_lnorm(datapoints)
     eigenvalues, eigenvectors = full_jacobi_sorted(L_norm)
-    k = calc_k(eigenvalues)
+    if k==0: k = calc_k(eigenvalues)
     U = [x[:k] for x in eigenvectors]
     T = normalize_matrix_by_rows(U)
-    T_indexed = [[idx]+row for idx,row in enumerate(T)]
-    print("T_indexed is:")
-    print(T_indexed)
-    from spkmeans import calc_kmeanspp
-    results = calc_kmeanspp(k, T_indexed)
-    return results
+    return T
