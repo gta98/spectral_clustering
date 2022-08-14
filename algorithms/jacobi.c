@@ -19,9 +19,22 @@
 
 void calc_c_s(mat_t* A, uint i, uint j, real* c, real* s) {
     real theta, t;
-    theta = (mat_get(A,j,j) - mat_get(A,i,i)) / (((double)2)*mat_get(A,i,j));
-    t = real_sign(theta) / (real_abs(theta) + sqrt((double)1 + (double)pow(theta, 2)));
-    *c = ((double)1) / sqrt((double)1 + (double)pow(t, 2));
+    real theta_sign, A_i_i, A_i_j, A_j_j;
+    A_i_i=mat_get(A,i,i); A_i_j=mat_get(A,i,j); A_j_j=mat_get(A,j,j);
+    theta_sign = real_sign(A_j_j-A_i_i)*real_sign(A_i_j);
+    if (A_i_j != 0) {
+        theta = (A_j_j-A_i_i) / (((real)2)*A_i_j);
+        t = theta_sign / (real_abs(theta) + sqrt((real)1 + (theta*theta)));
+    } else {
+        if (A_j_j == A_i_i) {
+            theta = 1;
+            t = theta_sign / (real_abs(theta) + sqrt((real)1 + (theta*theta)));
+        } else {
+            /* theta = inf */
+            t = 0;
+        }
+    }
+    *c = ((real)1) / sqrt((real)1 + (t*t));
     *s = t*(*c);
 }
 
@@ -64,10 +77,8 @@ void get_indices_of_max_element(mat_t* A, uint* i, uint* j) {
         exitd(1);
     }
     for (k=0; k<A->h; k++) {
-        for (l=0; l<A->w; l++) {
-            if (k==l) continue;
-            val = mat_get(A, k, l);
-            if (val < 0) val *= (real) -1;
+        for (l=(k+1); l<A->w; l++) {
+            val = real_abs(mat_get(A, k, l));
             if (val > max_val) {
                 max_val = val;
                 *i = k;
@@ -158,32 +169,72 @@ void calc_A_tag(mat_t* A_tag, mat_t* A) {
     calc_c_s(A, i, j, &c, &s);
 
     mat_copy_to(A_tag, A);
+/*
+    for r in range(A_tag.shape[0]):
+        if r not in {i,j}:
+            A_tag[r,i]=(c*A[r,i])-(s*A[r,j])
+            A_tag[i,r]=A_tag[r,i]
+        if r == i:
+            A_tag[i,i]=(c*c*A[i,i])+(s*s*A[j,j])-(2*s*c*A[i,j])
+    for r in range(A_tag.shape[0]):
+        if r not in {i,j}:
+            A_tag[r,j]=(c*A[r,j])+(s*A[r,i])
+            A_tag[j,r]=A_tag[r,j]
+        if r == j:
+            A_tag[j,j]=(s*s*A[i,i])+(c*c*A[j,j])+(2*s*c*A[i,j])
+    A_tag[i,j]=0
+    A_tag[j,i]=0
+*/
+
     for (r=0; r<A->h; r++) {
         if ((r != i) && (r != j)) {
             mat_set(A_tag, r, i, (c*mat_get(A,r,i))-(s*mat_get(A,r,j)));
+            mat_set(A_tag, i, r, mat_get(A_tag,r,i));
             mat_set(A_tag, r, j, (c*mat_get(A,r,j))+(s*mat_get(A,r,i)));
+            mat_set(A_tag, j, r, mat_get(A_tag,r,j));
         }
+        if (r == i) {
+            mat_set(A_tag, i, i, (c*c*mat_get(A,i,i)+(s*s*mat_get(A,j,j))-(2*s*c*mat_get(A,i,j))));
+        }
+        if (r == j) {
+            mat_set(A_tag, j, j, (s*s*mat_get(A,i,i)+(c*c*mat_get(A,j,j))+(2*s*c*mat_get(A,i,j))));
+        }
+        mat_set(A_tag, i, j, 0);
+        mat_set(A_tag, j, i, 0);
     }
-    mat_set(A_tag, i, i,
-            ((c*c)*mat_get(A,i,i)) + ((s*s)*mat_get(A,j,j)) - (((real)2)*s*c*mat_get(A,i,j)));
-    mat_set(A_tag, j, j,
-            ((s*s)*mat_get(A,i,i)) + ((c*c)*mat_get(A,j,j)) + (((real)2)*s*c*mat_get(A,i,j)));
-    mat_set(A_tag, i, j, 0);
+
 }
 
-void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* A_original, mat_t* V, mat_t* P, mat_t* tmp) {
-    assertd(A_original); assertd(V); assertd(A); assertd(A_tag); assertd(tmp);
+void calc_V_inplace(mat_t* V, mat_t* A) {
+    uint i, j, r;
+    real c, s;
+    real V_r_i, V_r_j;
+    i=0, j=0;
+    get_indices_of_max_element(A, &i, &j);
+    calc_c_s(A, i, j, &c, &s);
+
+    for (r=0; r<V->h; r++) {
+        V_r_i = mat_get(V, r, i), V_r_j = mat_get(V, r, j);
+        mat_set(V, r, i, (c*V_r_i)-(s*V_r_j));
+        mat_set(V, r, j, (s*V_r_i)+(c*V_r_j));
+    }
+}
+
+void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* A_original, mat_t* V/*, mat_t* P, mat_t* tmp*/) {
+    assertd(A_original); assertd(V); assertd(A); assertd(A_tag);/* assertd(P); assertd(tmp);*/
     assertd_is_square(A_original);
     assertd_same_dims(A_original, V); assertd_same_dims(V, A); assertd_same_dims(A, A_tag);
 
-    calc_P_inplace(P, A);
+    /*calc_P_inplace(P, A);*/
 
     /* V = V @ P */
-    mat_mul(tmp, V, P);
-    mat_copy_to(V, tmp);
+    /*mat_mul(tmp, V, P);
+    mat_copy_to(V, tmp);*/
+    calc_V_inplace(V, A);
 
     /* A_tag = P.transpose() @ A @ P */
-    transform_A_tag(A_tag, A, P, tmp);
+    /*transform_A_tag(A_tag, A, P, tmp);*/
+    calc_A_tag(A_tag, A);
 }
 
 /* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */
@@ -210,14 +261,15 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
     mat_t* A_tag;
     mat_t* A;
     mat_t* V;
-    mat_t* P;
-    mat_t* tmp;
+    /*mat_t* P;
+    mat_t* tmp;*/
     uint n, rotations;
 
     A_tag = NULL;
     A = NULL;
     V = NULL;
-    P = NULL;
+    /*P = NULL;
+    tmp = NULL;*/
 
     *eigenvectors = NULL;
     *eigenvalues = NULL;
@@ -225,17 +277,17 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
     assertd(is_square(A_original));
     n = A_original->h;
 
-    P = mat_init_copy(A_original);
+    /*P = mat_init_copy(A_original);
+    tmp = mat_init(n,n);*/
     A_tag = mat_init_copy(A_original);
     A = mat_init_copy(A_original);
     V = mat_init_identity(n);
-    tmp = mat_init(n,n);
-    if (!A_tag || !V || !A || !P || !tmp) {
+    if (!A_tag || !V || !A/* || !P || !tmp*/) {
         if (A_tag) mat_free(&A_tag);
         if (V) mat_free(&V);
         if (A) mat_free(&A);
-        if (P) mat_free(&P);
-        if (tmp) mat_free(&tmp);
+        /*if (P) mat_free(&P);
+        if (tmp) mat_free(&tmp);*/
         *eigenvectors = NULL;
         *eigenvalues = NULL;
         return;
@@ -245,7 +297,7 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
 
     rotations = 0;
     while (true) {
-        perform_A_V_iteration(A_tag, A, A_original, V, P, tmp);
+        perform_A_V_iteration(A_tag, A, A_original, V/*, P, tmp*/);
 
         rotations += 1;
 
@@ -255,7 +307,7 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
     }
 
     /* these are no longer relevant */
-    if (P) mat_free(&P);
     if (A) mat_free(&A);
-    if (tmp) mat_free(&tmp);
+    /*if (P) mat_free(&P);
+    if (tmp) mat_free(&tmp);*/
 }

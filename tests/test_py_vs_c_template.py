@@ -1,3 +1,4 @@
+from tkinter import ROUND
 import unittest
 from unittest.mock import patch
 import pickle
@@ -14,7 +15,9 @@ from test_integration_base import TestIntegrationBase
 import re
 import os
 
-ROUNDING_DIGITS = 4
+from test_py_vs_c import make_compatible_blob_symmetric
+
+ROUNDING_DIGITS = 3
 
 
 class TestAgainstData(TestIntegrationBase, unittest.TestCase):
@@ -53,7 +56,7 @@ class TestAgainstData(TestIntegrationBase, unittest.TestCase):
             [0.250,0.000,0.007,0.004,0.001,0.860,0.590,0.013,0.000,0.000]
     ]
 
-    D_pow_minus_half = [
+    D_inv_sqrt = [
             [1.050,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000],
             [0.000,1.105,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000],
             [0.000,0.000,0.944,0.000,0.000,0.000,0.000,0.000,0.000,0.000],
@@ -83,7 +86,7 @@ class TestAgainstData(TestIntegrationBase, unittest.TestCase):
 
     # data end
 
-    D = np.diag(np.square(1/np.diag(np.array(D_pow_minus_half))))
+    D = np.diag(np.square(1/np.diag(np.array(D_inv_sqrt))))
 
     def test_wam(self):
         W = self.spkmeansmodule.full_wam(self.X)
@@ -100,15 +103,40 @@ class TestAgainstData(TestIntegrationBase, unittest.TestCase):
 
     #@unittest.skip("Very low error for eigenvalues, HIGH ERROR (0.1, 10%) for eigenVECTORS")
     def test_jacobi_template(self):
-        D_pow_minus_half = np.array(self.D_pow_minus_half)
+        D_inv_sqrt = np.array(self.D_inv_sqrt)
         W = np.array(self.W)
-        lnorm = self.spkmeansmodule.full_lnorm(self.X)
+        n = W.shape[0]
+        assert(n==W.shape[1]==D_inv_sqrt.shape[0]==D_inv_sqrt.shape[1])
+        lnorm = self.spkmeansmodule.test_calc_L_norm(self.W, self.D_inv_sqrt)
+        lnorm_ref = np.around(np.eye(n) - (D_inv_sqrt@W@D_inv_sqrt), ROUNDING_DIGITS)
         eigenvalues, eigenvectors = self.spkmeansmodule.full_jacobi(lnorm)
+        eigenvalues, eigenvectors = np.around(eigenvalues,ROUNDING_DIGITS), np.around(eigenvectors,ROUNDING_DIGITS)
+        eigenvalues_ref, eigenvectors_ref = np.linalg.eig(lnorm_ref)
+        eigenvalues_ref, eigenvectors_ref = np.around(eigenvalues_ref,ROUNDING_DIGITS), np.around(eigenvectors_ref,ROUNDING_DIGITS)
         eigenvalues = [round(x,ROUNDING_DIGITS) for x in eigenvalues]
+        eigenvectors, eigenvalues = spkmeans_utils.sort_cols_by_vector_desc(eigenvectors, eigenvalues)
+        self.eigenvectors, self.eigenvalues = spkmeans_utils.sort_cols_by_vector_desc(self.eigenvectors, self.eigenvalues)
+        eigenvectors_ref, eigenvalues_ref = spkmeans_utils.sort_cols_by_vector_desc(eigenvectors_ref, eigenvalues_ref)
+        eigenvectors = np.array(eigenvectors)
+        self.eigenvectors = np.array(self.eigenvectors)
+        print(lnorm@eigenvectors[:,0] - eigenvalues[0]*eigenvectors[:,0])
         relative_error_eigenvalues = relative_error_vectors(self.eigenvalues, eigenvalues)
         relative_error_eigenvectors = relative_error_colwise_mean(self.eigenvectors, eigenvectors)
         self.assertLess(relative_error_eigenvalues, 1e-3, f"test_jacobi_template: Eigenvalues relative error is too high - \nGot: {eigenvalues}\nReal: {self.eigenvalues}")
-        self.assertLess(relative_error_eigenvectors, 0.11, f"test_jacobi_template: Eigenvectors relative error is too high - {eigenvectors}")
+        self.assertLess(relative_error_eigenvectors, 1e-3, f"test_jacobi_template: Eigenvectors relative error is too high - {eigenvectors}")
+    
+    def test_jacobi_on_known(self):
+        mat = make_compatible_blob_symmetric(3)
+        eigenvalues_ref, eigenvectors_ref = np.linalg.eig(np.array(mat))
+        print(eigenvectors_ref)
+        print(eigenvalues_ref)
+        eigenvalues, eigenvectors = spkmeans_utils.full_jacobi(mat)
+        eigenvalues, eigenvectors = np.array(eigenvalues), np.array(eigenvectors)
+        print("=======")
+        print(np.array(eigenvectors))
+        print(np.array(eigenvalues))
+        eigenvectors =eigenvectors.transpose()
+        print(mat@eigenvectors[:,0]-eigenvalues[0]*eigenvectors[:,0])
 
 
 def relative_error_vectors(vector_real: List[float], vector_calc: List[float]) -> float:

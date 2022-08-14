@@ -118,6 +118,10 @@ def is_square_matrix(A: np.ndarray) -> bool:
 def is_diagonal_matrix(A: np.ndarray) -> bool:
     return (np.count_nonzero(A - np.diag(np.diagonal(A))) == 0)
 
+@wrap__ndarray_to_list_of_lists
+def is_symmetric(A: np.ndarray) -> bool:
+    return (np.count_nonzero(A - A.transpose()) == 0)
+
 
 @wrap__ndarray_to_list_of_lists
 def calc_wam(datapoints: np.ndarray) -> np.ndarray:
@@ -181,13 +185,9 @@ def calc_L_norm(W: np.ndarray, D_pow_minus_half: np.ndarray) -> np.ndarray:
 @wrap__ndarray_to_list_of_lists
 def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     assertd(A.ndim==2)
+    #assertd(i<j)
     P = identity_matrix_like(A)
-    #print(f"i, j are {i},{j} and A[i,j]={A[i,j]}")
-    #print(A)
-    theta = (A[j,j] - A[i,i]) / (2*A[i,j])
-    t = sign(theta) / (np.abs(theta) + np.sqrt(1 + (theta**2)))
-    c = 1 / np.sqrt(1 + (t**2))
-    s = t*c
+    c,s = calc_c_s(A,i,j)
     P[i,i] = P[j,j] = c
     P[i,j] = s
     P[j,i] = -s
@@ -196,22 +196,22 @@ def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
 
 @wrap__ndarray_to_list_of_lists
 def get_indices_of_max_element(A: np.ndarray) -> Tuple:
+    #assertd(is_symmetric(A))
     i, j = -1, -1
     max_val = -1*inf
     for k in range(A.shape[0]):
-        for l in range(A.shape[1]):
-            if k==l: continue
-            val = A[k,l]
-            if val < 0: val *= -1
+        for l in range(k+1, A.shape[1]):
+            val = np.abs(A[k,l])
             if val > max_val:
                 i, j = k, l
                 max_val = val
-    return i, j
+    return min(i,j), max(i,j)
 
 
 @wrap__ndarray_to_list_of_lists
 def calc_P(A: np.ndarray) -> np.ndarray:
     assertd(A.ndim==2)
+    #assertd(is_symmetric(A))
     largest_abs_element_location: Tuple = get_indices_of_max_element(A)
     assertd(len(largest_abs_element_location) == 2)
     P = calc_P_ij(A, *largest_abs_element_location)
@@ -232,18 +232,65 @@ def calc_dist_between_offs(A_tag: np.ndarray, A: np.ndarray) -> float:
 def is_jacobi_convergence(A_tag: np.ndarray, A: np.ndarray, rotations: int) -> bool:
     dist_between_offs = calc_dist_between_offs(A_tag, A)
     assertd(dist_between_offs >= 0) # see forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=125232
+    print(f"dist_between_offs={dist_between_offs}, rotations={rotations}")
     return (dist_between_offs <= JACOBI_EPSILON) or (rotations >= JACOBI_MAX_ROTATIONS)
+
+def calc_c_s(A: np.ndarray, i:int, j:int) -> Tuple[float,float]:
+    A_j_j, A_i_i, A_i_j = A[j,j], A[i,i], A[i,j]
+    theta_sign = sign(A_j_j-A_i_i)*sign(A_i_j)
+    if (A_i_j != 0):
+        theta = (A_j_j - A_i_i) / (2*A_i_j)
+        t = theta_sign / (np.abs(theta) + np.sqrt(1+(theta*theta)))
+        c = 1/np.sqrt(1+(t*t))
+        s = t*c
+    else:
+        if (A_j_j == A_i_i):
+            theta = 1
+            t = theta_sign / (np.abs(theta) + np.sqrt(1+(theta*theta)))
+            c = 1/np.sqrt(1+(t*t))
+            s = t*c
+        else:
+            # theta = inf
+            t = 0
+            c = 1
+            s = 0
+    return c, s
+
+def calc_A_tag(A: np.ndarray) -> np.ndarray:
+    A_tag = np.copy(A)
+    i, j = get_indices_of_max_element(A_tag)
+    c, s = calc_c_s(A,i,j)
+
+    for r in range(A_tag.shape[0]):
+        if r not in {i,j}:
+            A_tag[r,i]=(c*A[r,i])-(s*A[r,j])
+            A_tag[i,r]=A_tag[r,i]
+        if r == i:
+            A_tag[i,i]=(c*c*A[i,i])+(s*s*A[j,j])-(2*s*c*A[i,j])
+    for r in range(A_tag.shape[0]):
+        if r not in {i,j}:
+            A_tag[r,j]=(c*A[r,j])+(s*A[r,i])
+            A_tag[j,r]=A_tag[r,j]
+        if r == j:
+            A_tag[j,j]=(s*s*A[i,i])+(c*c*A[j,j])+(2*s*c*A[i,j])
+    A_tag[i,j]=0
+    A_tag[j,i]=0
+    return A_tag
+    
 
 #@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     assertd(is_square_matrix(A_original))
+    #assertd(is_symmetric(A_original))
     V = identity_matrix_like(A_original)
-    A = np.array(A_original)
+    A = np.copy(A_original)
     rotations = 0
     while True:
         P = calc_P(A)
         V = V @ P
+        #A_tag = P.transpose() @ A @ P
         A_tag = V.transpose() @ A_original @ V
+        #A_tag = calc_A_tag(A)
         rotations += 1
         if is_jacobi_convergence(A_tag, A, rotations): break
         A = A_tag
@@ -353,7 +400,7 @@ def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[f
 
 
 def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
-    print(f"datapoints: {datapoints}")
+    #print(f"datapoints: {datapoints}")
     datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
     #print(f"py eigenvalues: {eigenvalues}")
@@ -368,25 +415,28 @@ def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List
 @wrap__ndarray_to_list_of_lists
 def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
     #print(U.shape)
-    print("U is:")
-    print(U)
+    #print("U is:")
+    #print(U)
     U_square_sum = np.sqrt(np.sum(np.square(U), axis=1))
-    print("U_square_sum is:")
-    print(U_square_sum)
-    print("Printed U_square_sum")
+    #print("U_square_sum is:")
+    #print(U_square_sum)
+    #print("Printed U_square_sum")
     normalized = (U.transpose()/U_square_sum).transpose()
-    print("NOrmalized:")
-    print(normalized)
-    print("Done")
+    #print("NOrmalized:")
+    #print(normalized)
+    #print("Done")
     return normalized
 
 
 #@wrap__ndarray_to_list_of_lists
-def full_spk(datapoints: List[List[float]], k: int) -> List[List[float]]:
+def full_spk_1_to_5(datapoints: List[List[float]], k: int) -> List[List[float]]:
     datapoints = np.array(datapoints)
     L_norm = full_lnorm(datapoints)
     eigenvalues, eigenvectors = full_jacobi_sorted(L_norm)
+    print("Eigenvectors:")
+    print(eigenvectors)
     if k==0: k = calc_k(eigenvalues)
+    print("Calc k: " + str(k))
     U = [x[:k] for x in eigenvectors]
     T = normalize_matrix_by_rows(U)
     return T

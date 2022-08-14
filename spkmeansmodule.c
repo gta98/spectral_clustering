@@ -37,15 +37,27 @@ static mat_t* parse_mat_from_args(PyObject* args) {
 }
 
 static status_t parse_mat_and_k_from_args(PyObject* args, mat_t** data, uint* k) {
+    PyObject* py_data;
     char* path;
     status_t result;
 
-    if (!PyArg_ParseTuple(args, "si", &path, k)) return ERROR_FORMAT;
-    if (PyErr_Occurred()) return ERROR_FORMAT;
+    if (!PyArg_ParseTuple(args, "Oi", &py_data, k)) return ERROR;
+    if (PyErr_Occurred()) return ERROR;
 
-    result = read_data(data, path);
-    if (result != SUCCESS) return result;
-    return SUCCESS;
+    if (PyUnicode_Check(py_data)) {
+        path = (char*) PyUnicode_AsUTF8(py_data);
+        if (!path || PyErr_Occurred()) return ERROR;
+        result = read_data(data, path);
+        /*Py_DECREF(py_data);*/
+        return result;
+    } else if (PyList_Check(py_data)) {
+        *data = PyListListFloat_to_Mat(py_data);
+        /*Py_DECREF(py_data);*/
+        if (!(*data)) return ERROR;
+        return SUCCESS;
+    } else {
+        return ERROR;
+    }
 }
 
 static PyObject* full_wam(PyObject* self, PyObject* args) {
@@ -120,8 +132,8 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     result_vectors = NULL, result_values = NULL;
     calc_full_jacobi(data, &result_vectors, &result_values);
     if (!result_vectors || !result_values) goto jacobi_failed_main;
-    /*printd("======Hola===========\n");
-    mat_print(result_values);*/
+    /*printd("======Hola===========\n");*/
+    /*mat_print(result_values);*/
     mat_free(&data);
     data = NULL;
 
@@ -160,6 +172,7 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     jacobi_failed_sort:
     goto free_vectors_values_failure;
     set_tuple_failed_malloc:
+    printd("Tuple failed malloc\n");
     py_result_tuple = PyErr_NoMemory();
     goto free_vectors_values_failure;
     free_vectors_values_failure:
@@ -452,6 +465,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     if (k==0) k = calc_k(eigenvalues);
     U = eigenvectors;
     original_w = U->w;
+    U->w = k;
     mat_normalize_rows(U, U);
     py_T = Mat_to_PyListListFloat(U);
     U->w = original_w;

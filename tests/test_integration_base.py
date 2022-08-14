@@ -97,7 +97,7 @@ class TestIntegrationBase():
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         caller = calframe[1][3]
-        self.assertLess(dist, 1e-5, f"workdir is {self.path_to_workdir}, comments: \"{comments}\"\ncaller is {caller}\nREAL:\n{real}\n\nFAKE:\n{calc}")
+        self.assertLess(dist, 1e-5, f"workdir is {self.path_to_workdir}, comments: \"{comments}\"\ncaller is {caller}\nREAL:\n{real.shape}\n\nFAKE:\n{calc.shape}")
 
 
 def run_with_data(

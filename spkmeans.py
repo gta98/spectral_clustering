@@ -145,7 +145,7 @@ def select_actual_centroids(data: List[List[float]], initial_centroids_list: Lis
     for i, centroid in enumerate(initial_centroids_list):
         loc = np.where(np.all(data==centroid,axis=1))[0] #[0] because this returns a tuple
         if len(loc) == 0: # or len(loc)>=2?
-            raise GenericErrorTrigger(f"There should only be one match among the datapoints for every initial centroid, but one got {len(loc)} matches")
+            raise GenericErrorTrigger(f"There should be exactly one match among the datapoints for every initial centroid, but one got {len(loc)} matches")
         initial_centroids_indices_actual[i] = loc[0]
     return initial_centroids_indices_actual
 
