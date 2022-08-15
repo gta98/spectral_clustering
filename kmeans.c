@@ -22,7 +22,7 @@
 #define RESULT_FOPEN_SUCCESS 0
 #define RESULT_FOPEN_ERROR   1
 
-#define EPSILON ((double)0.001)
+#define EPSILON ((double)0.000) /* confirmed in the forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=126205 */
 
 /*xxxxxxxxxxxxxxxxxxx//
 //  Constants - END  //
