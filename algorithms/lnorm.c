@@ -2,7 +2,7 @@
 
 mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt) {
     mat_t* L;
-    mat_t* tmp;
+    /*mat_t* tmp;*/
     uint i, j, n;
     real Lij;
     assertd_is_square(W);
