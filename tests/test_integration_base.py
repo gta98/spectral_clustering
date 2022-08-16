@@ -22,7 +22,10 @@ class TestIntegrationBase():
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.setup_workdir()
+        if cls.path_to_writable_folder == cls.path_to_repo_folder:
+            cls.path_to_workdir = cls.path_to_repo_folder
+        else:
+            cls.setup_workdir()
         os.environ['PATH_SRC'] = f"{cls.path_to_workdir}"
         os.environ['PATH_OUT'] = f"{cls.path_to_workdir}"
         cls.path_to_executable: str = dict()
@@ -30,7 +33,6 @@ class TestIntegrationBase():
 
     @classmethod
     def tearDownClass(cls) -> None:
-        #os.system(f"rm -rf {cls.path_to_workdir}")
         pass
 
     @classmethod
@@ -49,7 +51,6 @@ class TestIntegrationBase():
         os.system(f"unzip *.zip; rm *.zip")
         os.system(f"mv */* .")
         sys.path.insert(0, cls.path_to_workdir)
-        os.system(f"cp {cls.path_to_workdir}/*.so .")
 
     @abstractclassmethod 
     def compile(cls) -> None:
