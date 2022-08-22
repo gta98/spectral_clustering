@@ -22,10 +22,6 @@ mat_t* calc_wam(mat_t* data) {
     uint i, j, n;
     real sum;
 
-    /*printf("calc_wam got: \n");
-    mat_print_full(data);
-    printf("===========");*/
-
     n = data->h;
     W = mat_init(n, n);
     if (!W) return NULL;

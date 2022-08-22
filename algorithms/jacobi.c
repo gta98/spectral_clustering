@@ -92,21 +92,6 @@ void calc_A_tag(mat_t* A_tag, mat_t* A, uint i, uint j, real c, real s) {
     assertd(i<j);
 
     mat_copy_to(A_tag, A);
-/*
-    mat_t* tmp_1;
-    mat_t* tmp_2;
-    mat_t* P;
-
-    P = calc_P(A);
-    tmp_1 = matmul(A, P);
-    mat_transpose(P);
-    tmp_2 = matmul(P, tmp_1);
-    mat_copy_to(A_tag, tmp_2);
-    
-    mat_free(&P);
-    mat_free(&tmp_1);
-    mat_free(&tmp_2);
-*/
 
     for (r=0; r<A->h; r++) {
         if ((r == i) || (r == j)) continue;
@@ -122,23 +107,6 @@ void calc_A_tag(mat_t* A_tag, mat_t* A, uint i, uint j, real c, real s) {
     mat_set(A_tag, i, j, 0);
     mat_set(A_tag, j, i, 0);
 
-
-/*
-    for (r=0; r<A->h; r++) {
-        A_r_i = mat_get(A,r,i), A_r_j = mat_get(A,r,j);
-        mat_set(A_tag, r, i, (c*A_r_i)-(s*A_r_j));
-        mat_set(A_tag, r, j, (s*A_r_i)+(c*A_r_j));
-    }
-
-    for (r=0; r<A->w; r++) {
-        A_i_r = mat_get(A_tag,i,r), A_j_r = mat_get(A_tag,j,r);
-        mat_set(A_tag, i, r, (c*A_i_r)-(s*A_j_r));
-        mat_set(A_tag, j, r, (s*A_i_r)+(c*A_j_r));
-    }
-
-    mat_set(A_tag, i, j, 0);
-    mat_set(A_tag, j, i, 0);
-*/
 }
 
 void calc_V(mat_t* V, uint i, uint j, real c, real s) {
@@ -161,7 +129,6 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
 
     get_indices_of_max_element(A, &i, &j);
     calc_c_s(A, i, j, &c, &s);
-    /*printf("C: c=%f,s=%f at %d,%d with %f\n", c, s, i, j, mat_get(A,i,j));*/
 
     /* V = V @ P */
     calc_V(V, i, j, c, s);
@@ -169,9 +136,6 @@ void perform_A_V_iteration(mat_t* A_tag, mat_t* A, mat_t* V) {
     /* A_tag = P.transpose() @ A @ P */
     calc_A_tag(A_tag, A, i, j, c, s);
 }
-
-/* TODO - finish sort_cols_by_vector_desc, calc_eigengap, calc_k */
-
 
 real calc_dist_between_offs(mat_t* A_tag, mat_t* A) {
     return calc_off_squared(A) - calc_off_squared(A_tag);
@@ -231,8 +195,5 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
         mat_copy_to(A, A_tag);
     }
 
-    /* these are no longer relevant */
     if (A) mat_free(&A);
-    /*if (P) mat_free(&P);
-    if (tmp) mat_free(&tmp);*/
 }

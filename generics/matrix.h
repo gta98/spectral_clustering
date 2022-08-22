@@ -78,6 +78,7 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs);
 /* returns mat_lhs @ mat_rhs */
 mat_t* matmul(mat_t* mat_lhs, mat_t* mat_rhs);
 
+/* normalizes dst by rows - dst[i,j] /= sqrt(sum(square(dst[i:]))) */
 void mat_normalize_rows(mat_t* dst, mat_t* src);
 
 /* prints mat to stdout */
@@ -86,11 +87,19 @@ void mat_print(mat_t* mat);
 /* prints mat to stdout without rounding */
 void mat_print_full(mat_t* mat);
 
+/* prints mat diagonal */
 void mat_print_diagonal(mat_t* mat);
 
+/* sets v = v[indices] */
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices);
+
+/* returns A.squaresum() - A.diag().squaresum() */
 real calc_off_squared(mat_t* A);
+
+/* returns true iff A does not contain nonzeros outside the diagonal line */
 bool is_diagonal(mat_t* A);
+
+/* returns true iff A->h == A->w */
 bool is_square(mat_t* A);
 
 
