@@ -1,6 +1,8 @@
 REPODIR=${REPODIR:-'.'}
 SAVEDIR=${SAVEDIR:-'.'}
 
+pushd .
+
 ID1="REDACTED"
 ID2="REDACTED"
 FOLDERNAME=${ID1}_${ID2}_final

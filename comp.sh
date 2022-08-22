@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to compile and execute a c program
 
-PATH_SRC=${PATH_SRC:-'./spkmeansmodule'}
+PATH_SRC=${PATH_SRC:-'.'}
 PATH_OUT=${PATH_OUT:-'.'}
 
 mkdir -p $PATH_OUT

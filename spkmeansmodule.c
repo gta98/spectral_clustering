@@ -39,8 +39,6 @@ static mat_t* parse_mat_from_args(PyObject* args) {
 static mat_t* parse_mat_and_mat_from_args(PyObject* args, mat_t** data_1, mat_t** data_2) {
     PyObject* py_data_1;
     PyObject* py_data_2;
-    char* path;
-    status_t result;
 
     if (!PyArg_ParseTuple(args, "OO", &py_data_1, &py_data_2)) return NULL;
     if (PyErr_Occurred()) return NULL;
@@ -476,7 +474,6 @@ static PyObject* full_calc_k(PyObject* self, PyObject* args) {
 
 static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     mat_t* data;
-    mat_t* result;
     PyObject* py_T;
     /*PyObject* py_result_tuple;
     PyObject* py_k;*/
@@ -484,21 +481,17 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     mat_t* eigenvalues;
     mat_t* eigenvectors;
     uint k;
-    uint original_w;
     mat_t* U;
     status_t status;
     uint i,j;
 
     data = NULL;
-    result = NULL;
     L_norm = NULL;
     eigenvalues = NULL;
     eigenvectors = NULL;
     k = 0;
     U = NULL;
     py_T = NULL;
-    /*py_result_tuple = NULL;
-    py_k = NULL;*/
 
     status = parse_mat_and_k_from_args(args, &data, &k); /* NEED TO FREE data */
     if (status != SUCCESS) goto spk_tuple_failed_malloc;

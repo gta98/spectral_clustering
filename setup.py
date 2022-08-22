@@ -6,15 +6,12 @@ import os
 cwd = os.path.dirname(
         os.path.dirname(
             os.path.abspath(os.path.dirname(__file__)) ))
+cwd = os.path.abspath(os.path.dirname(__file__))
 
-PATH_SRC = os.environ.get('PATH_SRC') or f"{cwd}/spkmeansmodule"
+PATH_SRC = os.environ.get('PATH_SRC') or f"{cwd}"
 PATH_OUT = os.environ.get('PATH_OUT') or f"{cwd}"
 
 PRECONFIGURED_CFLAGS = sysconfig.get_config_var('CFLAGS').split()
-try:
-    PRECONFIGURED_CFLAGS.remove('-DNDEBUG')
-except ValueError:
-    pass
 
 os.makedirs(f"{PATH_OUT}", exist_ok=True)
 
@@ -33,21 +30,6 @@ setup(
     description="This is an implementation of the spkmeans algorithm",
     install_requires=['invoke'],
     packages=find_packages(),
-    license='GPL-2',
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
-        # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3 :: Only',
-        # We need to tell the world this is a CPython extension
-        'Programming Language :: Python :: Implementation :: CPython',
-    ],
     ext_modules=[
         Extension(
             # the qualified name of the extension module to build
@@ -59,7 +41,6 @@ setup(
             extra_compile_args=[
                 "-Wall", "-Wextra", "-Werror", "-pedantic-errors", "-lm",
                 "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
-                "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
@@ -88,8 +69,6 @@ setup(
                 "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
                 "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
-                "-Wno-error=unused-variable", # FIXME - REMOVE THIS
-                "-Wno-error=unused-but-set-variable", # FIXME - REMOVE THIS
                 f"-D FLAG_DEBUG",
                 f"-D FLAG_PRINTD",
                 f"-D FLAG_ASSERTD"
@@ -99,6 +78,5 @@ setup(
     include_dirs=[
         f'{PATH_SRC}'
     ],
-    build_dir=f"{PATH_OUT}",
     cmdclass={"build":BuildCommand}
 )
