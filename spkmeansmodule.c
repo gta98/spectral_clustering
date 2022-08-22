@@ -36,6 +36,21 @@ static mat_t* parse_mat_from_args(PyObject* args) {
     }
 }
 
+static mat_t* parse_mat_and_mat_from_args(PyObject* args, mat_t** data_1, mat_t** data_2) {
+    PyObject* py_data_1;
+    PyObject* py_data_2;
+    char* path;
+    status_t result;
+
+    if (!PyArg_ParseTuple(args, "OO", &py_data_1, &py_data_2)) return NULL;
+    if (PyErr_Occurred()) return NULL;
+
+    *data_1 = PyListListFloat_to_Mat(py_data_1);
+    *data_2 = PyListListFloat_to_Mat(py_data_2);
+
+    return NULL;
+}
+
 static status_t parse_mat_and_k_from_args(PyObject* args, mat_t** data, uint* k) {
     PyObject* py_data;
     char* path;
@@ -92,6 +107,22 @@ static PyObject* full_ddg(PyObject* self, PyObject* args) {
     return py_result;
 }
 
+static PyObject* full_ddg_inv_sqrt(PyObject* self, PyObject* args) {
+    mat_t* data;
+    mat_t* result;
+    PyObject* py_result;
+
+    data = parse_mat_from_args(args);
+    if (data == NULL) return NULL;
+
+    result = calc_full_ddg_inv_sqrt(data);
+    mat_free(&data);
+
+    py_result = Mat_to_PyListListFloat(result);
+    mat_free(&result);
+    return py_result;
+}
+
 static PyObject* full_lnorm(PyObject* self, PyObject* args) {
     mat_t* data;
     mat_t* result;
@@ -102,6 +133,23 @@ static PyObject* full_lnorm(PyObject* self, PyObject* args) {
 
     result = calc_full_lnorm(data);
     mat_free(&data);
+
+    py_result = Mat_to_PyListListFloat(result);
+    mat_free(&result);
+    return py_result;
+}
+
+static PyObject* calc_lnorm_capi(PyObject* self, PyObject* args) {
+    mat_t* W;
+    mat_t* D_inv_sqrt;
+    mat_t* result;
+    PyObject* py_result;
+
+    parse_mat_and_mat_from_args(args, &W, &D_inv_sqrt);
+
+    result = calc_lnorm(W,D_inv_sqrt);
+    mat_free(&W);
+    mat_free(&D_inv_sqrt);
 
     py_result = Mat_to_PyListListFloat(result);
     mat_free(&result);
@@ -132,8 +180,6 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     result_vectors = NULL, result_values = NULL;
     calc_full_jacobi(data, &result_vectors, &result_values);
     if (!result_vectors || !result_values) goto jacobi_failed_main;
-    /*printd("======Hola===========\n");*/
-    /*mat_print(result_values);*/
     mat_free(&data);
     data = NULL;
 
@@ -218,7 +264,7 @@ static mat_t* PyListListFloat_to_Mat(PyObject* py_mat) {
     PyObject* py_cell;
     uint i, j;
     int h, w;
-    double mat_cell;
+    real mat_cell;
 
     if (!py_mat) {
         printd("=========RETURNING ERROR 21==========\n");
@@ -274,7 +320,7 @@ static mat_t* PyListFloat_to_Mat(PyObject* py_mat, bool flat) {
     PyObject* py_cell;
     uint i, j;
     int w,h;
-    double mat_cell;
+    real mat_cell;
 
     if (!py_mat) {
         printd("=========RETURNING ERROR 31==========\n");
@@ -343,7 +389,7 @@ static PyObject* Mat_to_PyListListFloat(mat_t* mat) {
 
         for (j=0; j<w; j++) {
             cell = mat_get(mat, i, j);
-            py_cell = Py_BuildValue("d", cell);
+            py_cell = PyFloat_FromDouble(cell);
             if (!py_cell || PyErr_Occurred()) {
                 printd("Could not build value!!! Numero uno\n");
                 goto error_malloc_mat_to_listlist;
@@ -396,7 +442,7 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
 
     for (i=0; i<h; i++) {
         cell = mat_get(mat, i, i);
-        py_cell = Py_BuildValue("d", cell);
+        py_cell = PyFloat_FromDouble(cell);
         if (!py_cell || PyErr_Occurred()) {
             /* FIXME - low severity - value error, might wanna set later */
             return NULL;
@@ -441,6 +487,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     uint original_w;
     mat_t* U;
     status_t status;
+    uint i,j;
 
     data = NULL;
     result = NULL;
@@ -463,13 +510,15 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     status = sort_cols_by_vector_desc(eigenvectors, eigenvalues);
     if (status != SUCCESS) goto spk_had_a_problem;
     if (k==0) k = calc_k(eigenvalues);
-    U = eigenvectors;
-    original_w = U->w;
-    U->w = k;
+    U = mat_init(eigenvectors->h,k);
+    if (!U) goto spk_had_a_problem;
+    for (i=0;i<U->h;i++) {
+        for (j=0;j<U->w;j++) {
+            mat_set(U,i,j,mat_get(eigenvectors,i,j));
+        }
+    }
     mat_normalize_rows(U, U);
     py_T = Mat_to_PyListListFloat(U);
-    U->w = original_w;
-    /*U->w = original_w;*/ /* not needed but just in case (mat_free) */
 
     goto spk_free_and_return;
 
@@ -484,6 +533,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     if (L_norm) mat_free(&L_norm);
     if (eigenvalues) mat_free(&eigenvalues);
     if (eigenvectors) mat_free(&eigenvectors);
+    if (U) mat_free(&U);
     return py_T;
 }
 
@@ -708,7 +758,7 @@ static PyObject* test_PTAP(PyObject* self, PyObject* mat_tuple) {
     tmp = mat_init(A->h, A->w);
     if (!tmp) goto wrap_PTAP_test_no_memory;
 
-    transform_A_tag(dst, A, P, tmp);
+    /*transform_A_tag(dst, A, P, tmp);*/
 
     py_dst = Mat_to_PyListListFloat(dst);
     if (!py_dst) goto wrap_PTAP_test_no_memory;
@@ -934,10 +984,18 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) full_ddg,
       METH_VARARGS, 
       PyDoc_STR("Calculates diagonal degree matrix on given datapoints")},
+    {"full_ddg_inv_sqrt", 
+      (PyCFunction) full_ddg_inv_sqrt,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates diagonal degree matrix (inv sqrt) on given datapoints")},
     {"full_lnorm", 
       (PyCFunction) full_lnorm,
       METH_VARARGS, 
       PyDoc_STR("Calculates L-Norm on given datapoints")},
+    {"calc_lnorm", 
+      (PyCFunction) calc_lnorm_capi,
+      METH_VARARGS, 
+      PyDoc_STR("Calculates L-Norm on W (arg 1), D (arg 2)")},
     {"full_jacobi", 
       (PyCFunction) full_jacobi,
       METH_VARARGS, 

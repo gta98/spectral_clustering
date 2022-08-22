@@ -17,6 +17,11 @@ real real_sign(real x) {
     return (x >= 0) ? 1 : -1;
 }
 
+real real_sqrt(real x) {
+    assertd(x >= 0);
+    return sqrt(x);
+}
+
 int isanum(char* s) {
     int i;
     for (i = 0; s[i] != 0; i++) {

@@ -253,7 +253,8 @@ void mat_normalize_rows(mat_t* dst, mat_t* src) {
             uij = mat_get(src, i, j);
             sum_j_uij_2 += uij*uij;
         }
-        sum_j_uij_2 = sqrt(sum_j_uij_2);
+        sum_j_uij_2 = real_pow(sum_j_uij_2,(real)0.5);
+        if (sum_j_uij_2 == 0) continue;
         for (j=0; j<k; j++) {
             uij = mat_get(src, i, j);
             mat_set(dst, i, j, uij/sum_j_uij_2);
@@ -288,7 +289,8 @@ real calc_off_squared(mat_t* A) {
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
             if (i!=j)
-                off += pow(mat_get(A,i,j),2);
+                /*off += real_pow(mat_get(A,i,j),(real)2.0);*/
+                off += mat_get(A,i,j)*mat_get(A,i,j);
         }
     }
     return off;
@@ -309,6 +311,19 @@ void mat_print(mat_t* mat) {
     for (i=0; i<mat->h; i++) {
         for (j=0; j<mat->w; j++) {
             printf("%.4f", mat_get(mat, i, j));
+            if ((j+1) < mat->w) printf(",");
+        }
+        printf("\n");
+    }
+}
+
+void mat_print_full(mat_t* mat) {
+    uint i, j;
+    assertd(mat);
+    assertd((mat->w > 0) || ((mat->w == 0) && (mat->h==0)));
+    for (i=0; i<mat->h; i++) {
+        for (j=0; j<mat->w; j++) {
+            printf("%f", mat_get(mat, i, j));
             if ((j+1) < mat->w) printf(",");
         }
         printf("\n");

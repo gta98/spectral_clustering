@@ -58,13 +58,13 @@ def can_convert_to__np_matrix(A: List[List[float]]):
     return True
 
 def convert__np_matrix__to__list_of_lists(A: np.ndarray) -> List[List[float]]:
-    if not can_convert_to_list_of_list(A):
-        raise ValueError("A must be a 2d matrix")
-    return [[float(y) for y in x] for x in list(A)]
+    #if not can_convert_to_list_of_list(A):
+    #    raise ValueError("A must be a 2d matrix")
+    return A.tolist()#[[float(y) for y in x] for x in list(A)]
 
 def convert__list_of_lists__to__np_matrix(A: List[List[float]]) -> np.ndarray:
-    if not can_convert_to__np_matrix(A):
-        raise ValueError(f"Cannot convert A to np matrix because: ")
+    #if not can_convert_to__np_matrix(A):
+    #    raise ValueError(f"Cannot convert A to np matrix because: ")
     B = np.array(A)
     return B
 
@@ -101,7 +101,8 @@ def transpose_1d(x: np.ndarray) -> np.ndarray:
 @wrap__ndarray_to_list_of_lists
 def identity_matrix_like(A: np.ndarray) -> np.ndarray:
     assertd(A.ndim == 2)
-    return np.diag(np.ones(np.min(A.shape)))
+    assertd(is_square_matrix(A))
+    return np.eye(*A.shape)
 
 
 @wrap__ndarray_to_list_of_lists
@@ -169,7 +170,8 @@ def calc_ddg(W: np.ndarray) -> np.ndarray:
 @wrap__ndarray_to_list_of_lists
 def calc_ddg_inv_sqrt(W: np.ndarray) -> np.ndarray:
     D = calc_ddg(W)
-    return np.diag(np.diag(D)**(-0.5))
+    D_inv_sqrt = np.diag(np.power(np.diag(D), -0.5))
+    return D_inv_sqrt
 
 
 @wrap__ndarray_to_list_of_lists
@@ -185,9 +187,10 @@ def calc_L_norm(W: np.ndarray, D_pow_minus_half: np.ndarray) -> np.ndarray:
 @wrap__ndarray_to_list_of_lists
 def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     assertd(A.ndim==2)
-    #assertd(i<j)
+    assertd(i<j)
     P = identity_matrix_like(A)
     c,s = calc_c_s(A,i,j)
+    print(f"Py: c={c}, s={s}")
     P[i,i] = P[j,j] = c
     P[i,j] = s
     P[j,i] = -s
@@ -232,7 +235,7 @@ def calc_dist_between_offs(A_tag: np.ndarray, A: np.ndarray) -> float:
 def is_jacobi_convergence(A_tag: np.ndarray, A: np.ndarray, rotations: int) -> bool:
     dist_between_offs = calc_dist_between_offs(A_tag, A)
     assertd(dist_between_offs >= 0) # see forum: https://moodle.tau.ac.il/mod/forum/discuss.php?d=125232
-    print(f"dist_between_offs={dist_between_offs}, rotations={rotations}")
+    #print(f"dist_between_offs={dist_between_offs}, rotations={rotations}")
     return (dist_between_offs <= JACOBI_EPSILON) or (rotations >= JACOBI_MAX_ROTATIONS)
 
 def calc_c_s(A: np.ndarray, i:int, j:int) -> Tuple[float,float]:
@@ -276,21 +279,18 @@ def calc_A_tag(A: np.ndarray) -> np.ndarray:
     A_tag[i,j]=0
     A_tag[j,i]=0
     return A_tag
-    
 
 #@wrap__ndarray_to_list_of_lists
 def jacobi_algorithm(A_original: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     assertd(is_square_matrix(A_original))
-    #assertd(is_symmetric(A_original))
+    assertd(is_symmetric(A_original))
     V = identity_matrix_like(A_original)
     A = np.copy(A_original)
     rotations = 0
     while True:
         P = calc_P(A)
         V = V @ P
-        #A_tag = P.transpose() @ A @ P
-        A_tag = V.transpose() @ A_original @ V
-        #A_tag = calc_A_tag(A)
+        A_tag = P.T @ A @ P
         rotations += 1
         if is_jacobi_convergence(A_tag, A, rotations): break
         A = A_tag
@@ -314,42 +314,13 @@ def sort_cols_by_vector_desc(A: np.ndarray, v: np.array) -> Tuple[np.ndarray, np
 
 
 @wrap__ndarray_to_list_of_lists
-def calc_eigengap(eigenvalues_sort_dec: np.ndarray) -> np.ndarray:
-    eigenvalues_i_plus_1 = eigenvalues_sort_dec[1:]
-    eigenvalues_i = eigenvalues_sort_dec[:-1]
-    delta_abs = np.abs(eigenvalues_i - eigenvalues_i_plus_1)
-    return delta_abs
-
-
-@wrap__ndarray_to_list_of_lists
 def calc_k(eigenvalues: np.array) -> np.ndarray:
     n = len(eigenvalues)
-    assertd(n >= 2) # eigengap is undefined for n in {0,1}
-    for i in range(1,n):
-        assertd(eigenvalues[i] < eigenvalues[i-1])
+    if n <= 1: return n
     half_n = int(np.floor(n/2))
-    delta_abs = calc_eigengap(eigenvalues)
-    delta_max = np.max(delta_abs[:half_n])
-    for i in range(half_n):
-        if delta_abs[i] == delta_max:
-            return i+1
-    raise Exception("We were supposed to return")
-
-@wrap__ndarray_to_list_of_lists
-def full_calc_k(datapoints: np.ndarray) -> np.ndarray:
-    n = len(datapoints)
-    L_norm = full_lnorm(datapoints)
-    eigenvalues, eigenvectors = jacobi_algorithm(L_norm)
-    eigenvectors_sort_desc, eigenvalues_sort_desc = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
-    assertd(n == eigenvalues_sort_desc.shape[0])
-    assertd(n >= 2) # eigengap is undefined for n in {0,1}
-    half_n = int(np.floor(n/2))
-    delta_abs = calc_eigengap(eigenvalues_sort_desc)
-    delta_max = np.max(delta_abs[:half_n])
-    for i in range(half_n):
-        if delta_abs[i] == delta_max:
-            return i+1
-    raise Exception("We were supposed to return")
+    delta = -np.diff(eigenvalues) #np.diff(A)[i]==A[i+1]-A[i]
+    assertd(np.all(delta>=0))
+    return 1+np.argmax(delta[:half_n])
 
 
 #@wrap__ndarray_to_list_of_lists
@@ -392,51 +363,41 @@ def full_lnorm(datapoints: List[List[float]]) -> List[List[float]]:
 
 
 def full_jacobi(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
-    datapoints = convert__list_of_lists__to__np_matrix(datapoints)
+    datapoints = np.array(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
-    eigenvalues = [float(x) for x in eigenvalues]
-    eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
-    return eigenvalues, eigenvectors
+    return eigenvalues.tolist(), eigenvectors.tolist()
 
 
 def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List[List[float]]]:
-    #print(f"datapoints: {datapoints}")
     datapoints = convert__list_of_lists__to__np_matrix(datapoints)
     eigenvalues, eigenvectors = jacobi_algorithm(datapoints)
-    #print(f"py eigenvalues: {eigenvalues}")
     eigenvectors, eigenvalues = sort_cols_by_vector_desc(eigenvectors, eigenvalues)
-    #print(f"py eigenvalues (sorted): {eigenvalues}")
-    #print(eigenvectors)
     eigenvalues = [float(x) for x in eigenvalues]
-    #eigenvectors = convert__np_matrix__to__list_of_lists(eigenvectors)
     return eigenvalues, eigenvectors
 
 
 @wrap__ndarray_to_list_of_lists
 def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
-    #print(U.shape)
-    #print("U is:")
-    #print(U)
     U_square_sum = np.sqrt(np.sum(np.square(U), axis=1))
-    #print("U_square_sum is:")
-    #print(U_square_sum)
-    #print("Printed U_square_sum")
     normalized = (U.transpose()/U_square_sum).transpose()
-    #print("NOrmalized:")
-    #print(normalized)
-    #print("Done")
     return normalized
 
 
 #@wrap__ndarray_to_list_of_lists
 def full_spk_1_to_5(datapoints: List[List[float]], k: int) -> List[List[float]]:
     datapoints = np.array(datapoints)
-    L_norm = full_lnorm(datapoints)
+    L_norm = np.around(full_lnorm(datapoints),4)
     eigenvalues, eigenvectors = full_jacobi_sorted(L_norm)
-    print("Eigenvectors:")
-    print(eigenvectors)
     if k==0: k = calc_k(eigenvalues)
-    print("Calc k: " + str(k))
     U = [x[:k] for x in eigenvectors]
-    T = normalize_matrix_by_rows(U)
-    return T
+    T = np.array(normalize_matrix_by_rows(U))
+    return T.tolist()
+
+def full_spk_1_to_5_ref(datapoints: List[List[float]], k: int) -> List[List[float]]:
+    import spkmeansmodule
+    datapoints = [[y for y in x] for x in datapoints]
+    L_norm = spkmeansmodule.full_lnorm(datapoints)
+    eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
+    if k==0: k = spkmeansmodule.full_calc_k(eigenvalues)
+    U = [x[:k] for x in eigenvectors]
+    T = spkmeansmodule.normalize_matrix_by_rows(U)

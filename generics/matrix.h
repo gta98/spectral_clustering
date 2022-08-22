@@ -83,6 +83,9 @@ void mat_normalize_rows(mat_t* dst, mat_t* src);
 /* prints mat to stdout */
 void mat_print(mat_t* mat);
 
+/* prints mat to stdout without rounding */
+void mat_print_full(mat_t* mat);
+
 void mat_print_diagonal(mat_t* mat);
 
 status_t reorder_mat_cols_by_indices(mat_t* v, uint* indices);

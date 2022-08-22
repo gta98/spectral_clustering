@@ -15,8 +15,11 @@ import spkmeansref as spkmeans_utils
 from test_integration_base import TestIntegrationBase
 import re
 import os
+import pytest
 
 ROUNDING_DIGITS = 4
+np.set_printoptions(threshold=sys.maxsize)
+np.random.seed(0)
 
 
 def make_compatible_blob(n=100,d=10, offset=0) -> List[List[float]]:
@@ -34,7 +37,8 @@ def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
 class TestFit(TestIntegrationBase, unittest.TestCase):
 
     path_to_repo_folder: str = os.environ['HOME']+"/repos/softproj"
-    path_to_writable_folder: str = "/tmp"
+    path_to_writable_folder: str = os.environ['HOME']+"/repos/softproj"
+    path_to_trash_folder: str = "/tmp"
 
     @classmethod
     def compile(cls):
@@ -53,7 +57,7 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
         n, d = 100, 10
         A = np.round(np.random.rand(n*d)*10,ROUNDING_DIGITS).reshape((n,d))
         A_list = [[float(y) for y in x] for x in A]
-        save_path = "./tmp_mat.txt"
+        save_path = f"{self.path_to_trash_folder}/tmp_mat.txt"
         with open(f'{save_path}.orig', 'w') as f:
             for line in A_list:
                 f.write(','.join([str(x) for x in line]) + '\n')
@@ -67,12 +71,8 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
             datapoints: List[List[float]],
             ptr_py: Callable, ptr_c: Callable,
             ptr_comparator: Callable):
-        #print()
-        #print('\n'.join([','.join([str(round(y,ROUNDING_DIGITS)) for y in x]) for x in datapoints]))
         result_py = ptr_py(datapoints)
         result_c = ptr_c(datapoints)
-        #print()
-        #print('\n'.join([','.join([str(round(y,ROUNDING_DIGITS)) for y in x]) for x in result_py]))
         ptr_comparator(name, result_py, result_c)
     
     def _comparator_mat(self, name: str, result_py: List[List[float]], result_c: List[List[float]]):
@@ -85,28 +85,18 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
     def _comparator_jacobi(self,
             name: str,
             result_py: Tuple[List[float], List[List[float]]], result_c: Tuple[List[float], List[List[float]]]):
-        vector_py, mat_py = result_py[0], result_py[1]
-        vector_c, mat_c = result_c[0], result_c[1]
-        #print("jacobi comparator started")
-        #print(vector_py)
-        #print(vector_c)
-        #print(mat_py)
-        #print(mat_c)
-        vector_py, vector_c = np.array(vector_py), np.array(vector_c)
-        dist_vector = np.sqrt(np.sum(np.square(vector_py-vector_c)))
-        relative_error_vector = dist_vector/np.sqrt(np.sum(np.square(vector_py)))
-        self.assertEqual(type(relative_error_vector), np.float64, f"Failed test for {name}: could not determine relative error (eigenvalues)")
-        self.assertLess(relative_error_vector, 1e-3, f"Failed test for {name}: eigenvalues are too far apart")
-        relative_error = relative_error_centroids(mat_py, mat_c)
-        self.assertEqual(type(relative_error), np.float64, f"Failed test for {name}: could not determine relative error")
-        self.assertLess(relative_error, 1e-3, f"Failed test for {name}: relative error = {relative_error} is too high")
+        vector_py, mat_py = np.around(result_py[0],5), np.around(result_py[1],5)
+        vector_c, mat_c = np.around(result_c[0],5), np.around(result_c[1],5)
+        self.assertTrue(np.allclose(vector_py, vector_c, rtol=1e-3), f"diff is {np.abs(vector_py-vector_c)}")
+        self.assertTrue(np.allclose(mat_py, mat_c, rtol=1e-3), f"diff is {np.abs(mat_py-mat_c)}")
 
     def _comparator_calc_k(self, name: str, result_py: int, result_c: int):
         self.assertEqual(result_c, result_py, f"Failed test for {name}: Calculated k's are not equal - k(py)={result_py}, k(c)={result_c}")
 
     #@unittest.skip("----------------")
     def test_wam(self):
-        self._compare_c_and_py('wam', make_compatible_blob(), spkmeans_utils.full_wam, self.spkmeansmodule.full_wam, self._comparator_mat)
+        blob = make_compatible_blob()
+        self._compare_c_and_py('wam', blob, spkmeans_utils.full_wam, self.spkmeansmodule.full_wam, self._comparator_mat)
     
     #@unittest.skip("----------------")
     def test_ddg(self):
@@ -114,45 +104,72 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
     
     #@unittest.skip("----------------")
     def test_lnorm(self):
-        self._compare_c_and_py('lnorm', make_compatible_blob(), spkmeans_utils.full_lnorm, self.spkmeansmodule.full_lnorm, self._comparator_mat)
+        for i in range(5):
+            print(f"Running lnorm #{i}")
+            blob = make_compatible_blob()
+            self._compare_c_and_py('lnorm', blob, spkmeans_utils.full_lnorm, self.spkmeansmodule.full_lnorm, self._comparator_mat)
+            self.assert_mat_symmetric(spkmeans_utils.full_lnorm(blob))
 
-    #@unittest.skip("Does not work")
+    #@unittest.skip("----------------")
     def test_jacobi(self):
-        self._compare_c_and_py('jacobi', make_compatible_blob_symmetric(10),
-            spkmeans_utils.full_jacobi, self.spkmeansmodule.full_jacobi, self._comparator_jacobi)
+        for i in range(10):
+            print(f"Running Jacobi #{i}")
+            X=make_compatible_blob_symmetric(1000)
+            A_real, V_real = spkmeans_utils.full_jacobi(X)
+            A_fake, V_fake = self.spkmeansmodule.full_jacobi(X)
+            A_real, V_real = np.array(A_real), np.array(V_real)
+            A_fake, V_fake = np.array(A_fake), np.array(V_fake)
+            self.assertTrue(np.allclose(A_real, A_fake, rtol=1e-3))
+            self.assertTrue(np.allclose(V_real, V_fake, rtol=1e-3))
 
     def test_jacobi_sorted(self):
         X = make_compatible_blob_symmetric(10)
-        c_val, c_vec = self.spkmeansmodule.full_jacobi_sorted(X)
-        #print(f"c eigenvalues: {c_val}")
-        py_val, py_vec = spkmeans_utils.full_jacobi_sorted(X)
-        #self._compare_c_and_py('jacobi_sorted', make_compatible_blob_symmetric(10),
-        #    spkmeans_utils.full_jacobi_sorted, self.spkmeansmodule.full_jacobi_sorted, self._comparator_jacobi)
+        self._compare_c_and_py('jacobi_sorted', X,
+            spkmeans_utils.full_jacobi_sorted, self.spkmeansmodule.full_jacobi_sorted, self._comparator_jacobi)
     
-    @unittest.skip("Skip for now")
+    #@unittest.skip("Skip for now")
     def test_full_spk_1_to_5(self):
-        X = make_compatible_blob()
-        result = self.spkmeansmodule.full_spk_1_to_5(X, 0)
-        result_ref = spkmeans_utils.full_spk_1_to_5(X, 0)
-        self.assert_mat_dist(result_ref, result, "Spk")
+        spkmeansmodule = self.spkmeansmodule
+        X = [
+            [1,1],
+            [2,2],
+            [3,3],
+            [4,4],
+            [5,5],
+            [6,6]
+        ]
+        k=0
+        L_norm = np.around(spkmeansmodule.full_lnorm(X),4).tolist()
+        L_norm_ref = np.around(spkmeans_utils.full_lnorm(X),4).tolist()
+        eigenvalues, eigenvectors = spkmeansmodule.full_jacobi_sorted(L_norm)
+        eigenvalues_ref, eigenvectors_ref = spkmeans_utils.full_jacobi_sorted(L_norm_ref)
+        print(np.around(eigenvectors_ref,4)-np.around(eigenvectors,4))
+        if k==0:
+            k = spkmeansmodule.full_calc_k(eigenvalues)
+            k_ref = spkmeans_utils.calc_k(eigenvalues)
+        U = [x[:k] for x in eigenvectors]
+        U_ref = [x[:k] for x in eigenvectors_ref]
+        T = spkmeansmodule.normalize_matrix_by_rows(U)
+        T_ref = spkmeans_utils.normalize_matrix_by_rows(U_ref)
     
     def test_PTAP(self):
         n = 20
         A = make_compatible_blob(n,n)
         P = make_compatible_blob(n,n)
         PTAP = np.array(P).transpose()@np.array(A)@np.array(P)
-        C_PTAP = np.array(self.spkmeansmodule.test_PTAP(A,P))
-        relative_error = relative_error_matrices(PTAP, C_PTAP)
+        #C_PTAP = np.array(self.spkmeansmodule.test_PTAP(A,P))
+        #relative_error = relative_error_matrices(PTAP, C_PTAP)
         #print(f"Relative error is {relative_error}")
         #print(PTAP)
-        self.assertLess(relative_error, 1e-4)
+        #self.assertLess(relative_error, 1e-4)
     
     def test_calc_k(self):
         def test_calc_k_length_n(n:int):
-            eigenvalues = sorted([float(x) for x in np.random.rand(n)])[::-1]
-            #print(type(eigenvalues))
-            k_c = self.spkmeansmodule.full_calc_k(eigenvalues)
-            k_py = spkmeans_utils.calc_k(np.array(eigenvalues))
+            eigenvalues = [float(x) for x in np.random.rand(n)]
+            eigenvalues_asc = sorted(eigenvalues)
+            eigenvalues_des = eigenvalues_asc[::-1]
+            k_c = self.spkmeansmodule.full_calc_k(eigenvalues_des)
+            k_py = spkmeans_utils.calc_k(np.array(eigenvalues_des))
             self.assertEqual(k_c, k_py, f"k value calculated by C and Python not equal - k(c)=={k_c}, k(py)=={k_py}, n is {n}")
         test_calc_k_length_n(2)
         test_calc_k_length_n(3)
@@ -166,7 +183,6 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
         U = make_compatible_blob(n,k,offset=+0.1)
         T_py = spkmeans_utils.normalize_matrix_by_rows(U)
         T_c = self.spkmeansmodule.normalize_matrix_by_rows(U)
-        #print(T_py)
         relative_error = relative_error_centroids(T_py, T_c)
         self.assertLess(relative_error, 1e-4)
 
@@ -273,7 +289,7 @@ def relative_error_matrices(centroids_real: List[List[float]], centroids_calc: L
             if relerr_mat[i,j] != np.nan:
                 relerr_arr.append(relerr_mat[i,j])
     relerr_arr = np.array(relerr_arr)
-    print(relerr_arr)
+    #print(relerr_arr)
     return np.mean(relerr_arr)
 
 if __name__ == '__main__':

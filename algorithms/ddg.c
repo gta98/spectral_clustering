@@ -27,7 +27,7 @@ mat_t* calc_ddg_inv_sqrt(mat_t* W) {
     if (!D) return NULL;
     assertd_is_square(D);
     for (i=0; i<D->h; i++) {
-        mat_set(D, i, i, 1/sqrt(mat_get(D, i, i)));
+        mat_set(D, i, i, real_pow(mat_get(D, i, i),(real)(-0.5)));
     }
     return D;
 }

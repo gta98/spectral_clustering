@@ -119,7 +119,7 @@ class TestAgainstData(TestIntegrationBase, unittest.TestCase):
         eigenvectors_ref, eigenvalues_ref = spkmeans_utils.sort_cols_by_vector_desc(eigenvectors_ref, eigenvalues_ref)
         eigenvectors = np.array(eigenvectors)
         self.eigenvectors = np.array(self.eigenvectors)
-        print(lnorm@eigenvectors[:,0] - eigenvalues[0]*eigenvectors[:,0])
+        #print(lnorm@eigenvectors[:,0] - eigenvalues[0]*eigenvectors[:,0])
         relative_error_eigenvalues = relative_error_vectors(self.eigenvalues, eigenvalues)
         relative_error_eigenvectors = relative_error_colwise_mean(self.eigenvectors, eigenvectors)
         self.assertLess(relative_error_eigenvalues, 1e-3, f"test_jacobi_template: Eigenvalues relative error is too high - \nGot: {eigenvalues}\nReal: {self.eigenvalues}")

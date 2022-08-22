@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    free(data);
+    mat_free(&data);
 
     if (status != SUCCESS) {
         return get_code_print_msg(1, MSG_ERR_GENERIC);
@@ -152,6 +152,16 @@ mat_t* calc_full_ddg(mat_t* data) {
     W = calc_wam(data);
     if (!W) return NULL;
     D = calc_ddg(W);
+    mat_free(&W);
+    return D;
+}
+
+mat_t* calc_full_ddg_inv_sqrt(mat_t* data) {
+    mat_t* W;
+    mat_t* D;
+    W = calc_wam(data);
+    if (!W) return NULL;
+    D = calc_ddg_inv_sqrt(W);
     mat_free(&W);
     return D;
 }

@@ -36,7 +36,8 @@ def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
 class TestFit(TestIntegrationBase, unittest.TestCase):
 
     path_to_repo_folder: str = os.environ['HOME']+"/repos/softproj"
-    path_to_writable_folder: str = "/tmp"
+    path_to_writable_folder: str = os.environ['HOME']+"/repos/softproj"
+    path_to_trash_folder: str = "/tmp"
 
     @classmethod
     def compile(cls):
@@ -67,13 +68,13 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
     #@unittest.skip("Does not work")
     def test_jacobi(self):
         start = time.time()
-        self.spkmeansmodule.full_jacobi(make_compatible_blob_symmetric(1000))
+        self.spkmeansmodule.full_jacobi(make_compatible_blob_symmetric(10000))
         diff = int(time.time() - start)
         print(f"Time elapsed: {diff} seconds (JACOBI)")
     
     def test_jacobi_sorted(self):
         start = time.time()
-        self.spkmeansmodule.full_jacobi_sorted(make_compatible_blob_symmetric(1000))
+        self.spkmeansmodule.full_jacobi_sorted(make_compatible_blob_symmetric(10000))
         diff = int(time.time() - start)
         print(f"Time elapsed: {diff} seconds (JACOBI SORTED)")
 

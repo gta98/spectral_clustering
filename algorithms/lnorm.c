@@ -2,9 +2,7 @@
 
 mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt) {
     mat_t* L;
-    /*mat_t* tmp;*/
     uint i, j, n;
-    real Lij;
     assertd_is_square(W);
     assertd_same_dims(W, D_inv_sqrt);
     n = W->h;
@@ -13,45 +11,19 @@ mat_t* calc_lnorm(mat_t* W, mat_t* D_inv_sqrt) {
 
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
-            mat_set(L,i,j, mat_get(W,i,j)*mat_get(D_inv_sqrt,j,j));
+            mat_set(L,i,j, mat_get(D_inv_sqrt,i,i)*mat_get(W,i,j)*mat_get(D_inv_sqrt,j,j));
         }
-    }
-
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
-            mat_set(L,i,j, mat_get(D_inv_sqrt,i,i)*mat_get(L,i,j));
-        }
-    }
-
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
-            mat_set(L, i, j, -1*mat_get(L,i,j));
-        }
-    }
-
-    for (i=0; i<n; i++) {
-        mat_set(L, i, i, 1);
     }
     
-    /*tmp = mat_init(n,n);
-    if (!tmp) {
-        mat_free(&L);
-        return NULL;
-    }
-
-    mat_mul(tmp, W, D_inv_sqrt);
-    mat_mul(L, D_inv_sqrt, tmp);
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
-            Lij = mat_get(L,i,j);
-            mat_set(L,i,j,((real)-1)*Lij);
+            mat_set(L, i, j, ((real)-1)*mat_get(L,i,j));
         }
     }
-    for (i=0; i<n; i++) {
-        Lij = mat_get(L, i, i);
-        mat_set(L, i, i, Lij + 1);
-    }
 
-    if (tmp) mat_free(&tmp);*/
+    for (i=0; i<n; i++) {
+        mat_set(L, i, i, 1.0);
+    }
+    
     return L;
 }

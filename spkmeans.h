@@ -24,6 +24,7 @@ extern char GOALS[GOALS_COUNT][7];*/
 
 mat_t* calc_full_wam(mat_t* data);
 mat_t* calc_full_ddg(mat_t* data);
+mat_t* calc_full_ddg_inv_sqrt(mat_t* data);
 mat_t* calc_full_lnorm(mat_t* data);
 void   calc_full_jacobi(mat_t* generic_symm_mat, mat_t** eigenvectors, mat_t** eigenvalues);
 

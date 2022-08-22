@@ -14,18 +14,22 @@ import inspect
 from subprocess import CalledProcessError
 
 default_path_to_writable_folder = "/tmp"
+default_path_to_trash_folder = "/tmp"
 
 class TestIntegrationBase():
 
     path_to_repo_folder: str = None
     path_to_writable_folder: str = None
+    path_to_trash_folder: str = None
 
     @classmethod
     def setUpClass(cls) -> None:
+        cls.setup_trashdir()
         if cls.path_to_writable_folder == cls.path_to_repo_folder:
             cls.path_to_workdir = cls.path_to_repo_folder
         else:
             cls.setup_workdir()
+        sys.path.insert(0, cls.path_to_workdir)
         os.environ['PATH_SRC'] = f"{cls.path_to_workdir}"
         os.environ['PATH_OUT'] = f"{cls.path_to_workdir}"
         cls.path_to_executable: str = dict()
@@ -34,6 +38,14 @@ class TestIntegrationBase():
     @classmethod
     def tearDownClass(cls) -> None:
         pass
+
+    @classmethod
+    def setup_trashdir(cls) -> None:
+        if type(cls.path_to_trash_folder) not in {str, NoneType}:
+            raise ValueError("Invalid type - path_to_trash_folder should be a string or None")
+        cls.path_to_trash_folder = cls.path_to_trash_folder \
+            or f"{default_path_to_trash_folder}/spkmeans_{int(time.time())}"
+        os.makedirs(cls.path_to_trash_folder, exist_ok=True)
 
     @classmethod
     def setup_workdir(cls) -> None:
@@ -50,7 +62,6 @@ class TestIntegrationBase():
         os.chdir(cls.path_to_workdir)
         os.system(f"unzip *.zip; rm *.zip")
         os.system(f"mv */* .")
-        sys.path.insert(0, cls.path_to_workdir)
 
     @abstractclassmethod 
     def compile(cls) -> None:
@@ -80,7 +91,7 @@ class TestIntegrationBase():
     def run_with_data(cls,
             path_to_executable: str,
             k: Optional[int], goal: str, data: List[List[float]]) -> str:
-        return run_with_data(path_to_executable, k, goal, data, path_to_data=f"{cls.path_to_workdir}/{goal}.txt")
+        return run_with_data(path_to_executable, k, goal, data, path_to_data=f"{cls.path_to_trash_folder}/{goal}.txt")
     
     @classmethod
     def run_with_args(cls,
@@ -99,13 +110,18 @@ class TestIntegrationBase():
         calframe = inspect.getouterframes(curframe, 2)
         caller = calframe[1][3]
         self.assertLess(dist, 1e-5, f"workdir is {self.path_to_workdir}, comments: \"{comments}\"\ncaller is {caller}\nREAL:\n{real.shape}\n\nFAKE:\n{calc.shape}")
+        self.assertTrue(np.allclose(real, calc) or dist<1e-3)
+    
+    def assert_mat_symmetric(self, A: np.ndarray):
+        A = np.around(np.array(A),4)
+        self.assertTrue(np.all(A.T==A))
 
 
 def run_with_data(
         path_to_executable: str,
         k: Optional[int], goal: str, data: List[List[float]],
         path_to_data: str) -> str:
-    if (type(path_to_executable) is not str) \
+    if (type(path_to_executable) not in {str,list}) \
             or (type(k) not in {int, str, NoneType}) \
             or (type(goal) not in {str}) \
             or (type(data) not in {list}) \
@@ -139,16 +155,19 @@ def run_with_valid_args(
 def run_with_args(
         path_to_executable: str, *extras: Optional[List[str]], **kwargs) -> str:
     path_to_workdir = kwargs.get('path_to_workdir', None)
-    if (type(path_to_executable) is not str) \
+    if (type(path_to_executable) not in {str,list}) \
             or (type(extras) not in {tuple, NoneType}) \
             or (type(path_to_workdir) not in {str, NoneType}):
         print(f"{path_to_executable},,, {extras},,, {path_to_workdir}")
         raise ValueError("run_with_args() found args with invalid types - aborting")
     if path_to_workdir: os.chdir(path_to_workdir)
     args = []
-    if path_to_executable.endswith(".py"):
+    if type(path_to_executable) == str and path_to_executable.endswith(".py"):
         args.append("python3")
-    args.append(path_to_executable)
+    if type(path_to_executable) == str:
+        args.append(path_to_executable)
+    elif type(path_to_executable) == list:
+        args += path_to_executable
     args += extras
     timeout = kwargs.get('timeout', inf)
     # FIXME - implement timeout maybe

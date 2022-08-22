@@ -7,7 +7,7 @@
 #include <limits.h>
 #include <float.h>
 
-typedef float           real;
+typedef double          real;
 typedef uint32_t        uint;
 
 typedef struct Point {
@@ -41,8 +41,6 @@ typedef enum Status {
 
 #define RESULT_FOPEN_SUCCESS 0
 #define RESULT_FOPEN_ERROR   1
-
-#define EPSILON ((double)0.001)
 
 #define JACOBI_MAX_ROTATIONS ((uint)100)
 #define JACOBI_EPSILON       ((real)1e-5)
