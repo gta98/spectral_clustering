@@ -23,6 +23,7 @@ cp -r $REPODIR/algorithms/*.c $WORKDIR/algorithms
 cp -r $REPODIR/algorithms/*.h $WORKDIR/algorithms
 cp -r $REPODIR/comp.sh $WORKDIR
 rm $WORKDIR/test*.py
+rm $WORKDIR/README.md
 
 cd $WORKDIR/..
 zip -r $FOLDERNAME.zip $FOLDERNAME
