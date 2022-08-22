@@ -1,2 +1,5 @@
-./comp.sh
-valgrind --show-leak-kinds=all --leak-check=yes ./output/spkmeans jacobi resources/test_valgrind/square.csv
+#./comp.sh
+valgrind --show-leak-kinds=all --leak-check=yes ../spkmeans wam resources/wam.txt 
+valgrind --show-leak-kinds=all --leak-check=yes ../spkmeans ddg resources/ddg.txt
+valgrind --show-leak-kinds=all --leak-check=yes ../spkmeans lnorm resources/lnorm.txt 
+valgrind --show-leak-kinds=all --leak-check=yes ../spkmeans jacobi resources/jacobi.txt 

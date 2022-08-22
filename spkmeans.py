@@ -20,7 +20,7 @@ MSG_ERR_GENERIC = "An Error Has Occurred"
 INFINITY = float('inf')
 JACOBI_MAX_ROTATIONS = 100
 JACOBI_EPSILON = 1e-5
-KMEANS_EPSILON = 1e-5 # FIXME - what should this be? 0?
+KMEANS_EPSILON = 0
 KMEANS_MAX_ITER = 300 # this was verified to be 300
 
 class InvalidInputTrigger(ValueError): pass
@@ -56,8 +56,7 @@ def get_results(k: Optional[int], goal: str, datapoints: List[List[float]]) -> U
         #print(f"Aboutta pass k=={k}")
         T = spkmeansmodule.full_spk_1_to_5(datapoints, k)
         k = k or len(T[0])
-        T_indexed = np.array([[int(idx)]+row for idx,row in enumerate(T)])
-        results = calc_kmeanspp(k, T_indexed)
+        results = calc_kmeanspp(k, T)
         print(','.join([str(x) for x in results[0]]))
         results = results[1:]
     elif goal == 'wam':
@@ -86,12 +85,11 @@ def calc_kmeanspp(k, datapoints):
 
 def extract_fit_params(*data_from_cmd, should_print=True):
     k, max_iter, eps, datapoints_list = data_from_cmd
-    initial_centroids_list = KMeansPlusPlus(k, datapoints_list)
-    initial_centroids_indices = select_actual_centroids(datapoints_list, initial_centroids_list)
     datapoints_list = np.array(datapoints_list)
-    datapoints_list = [list(x) for x in list(datapoints_list[:,1:])] # remove index, convert to List[List[float]] for C
-    dims_count = len(datapoints_list[0])
-    point_count = len(datapoints_list)
+    initial_centroids_indices = KMeansPlusPlus(k, datapoints_list)
+    #initial_centroids_indices = select_actual_centroids(datapoints_list, initial_centroids_list)
+    point_count, dims_count = datapoints_list.shape
+    datapoints_list = datapoints_list.tolist()
     return (
         initial_centroids_indices,
         datapoints_list,
@@ -112,17 +110,22 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
     P = [0 for _ in range(N)]
     D = [float('inf') for _ in range(N)]
 
+    #x_indices = np.arange(x.shape[0]).reshape(x.shape[0],1)
+    #x = np.hstack((x_indices,x))
+    n = x.shape[0]
+
     i = 0
-    selection = np.random.choice(x[:,0])
-    u[0] = x[np.where(x[:,0]==selection)]
+    selection = np.random.choice(n)
+    u[0] = x[selection]
+    sels = [selection]
 
     while (i+1) < k:
         for l in range(N):
-            x_l = x[l] # remove index
+            x_l = x[l]
             min_square_dist = float('inf')
             for j in range(0,i+1):
-                u_j = u[j][0,:] # u.shape = (1,u.shape[0]) -> (u.shape[0],)
-                square_dist = np.sum((x_l[1:] - u_j[1:])**2) # first item is an index
+                u_j = u[j]
+                square_dist = np.sum((x_l - u_j)**2) # first item is an index
                 min_square_dist = min(square_dist, min_square_dist)
             D[l] = min_square_dist
         D_sum = sum(D)
@@ -131,12 +134,12 @@ def KMeansPlusPlus(k: int, x: np.array) -> List[int]:
         P = D/D_sum
 
         i += 1
-        selection = np.random.choice(x[:,0], p=P)
-        u[i] = x[np.where(x[:,0]==selection)]
+        selection = np.random.choice(n, p=P)
+        u[i] = x[selection]
+        sels.append(selection)
         continue
-
-    centroids_without_padding = [a[0] for a in u]
-    return centroids_without_padding
+    #centroids_without_padding = [a[0] for a in u]
+    return sels
 
 
 def select_actual_centroids(data: List[List[float]], initial_centroids_list: List[List[float]]) -> List[int]:

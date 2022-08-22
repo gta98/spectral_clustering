@@ -380,6 +380,7 @@ def full_jacobi_sorted(datapoints: List[List[float]]) -> Tuple[List[float], List
 def normalize_matrix_by_rows(U: np.ndarray) -> np.ndarray:
     U_square_sum = np.sqrt(np.sum(np.square(U), axis=1))
     normalized = (U.transpose()/U_square_sum).transpose()
+    normalized = np.nan_to_num(normalized,0)
     return normalized
 
 

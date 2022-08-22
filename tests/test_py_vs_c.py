@@ -112,9 +112,9 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
 
     #@unittest.skip("----------------")
     def test_jacobi(self):
-        for i in range(10):
+        for i in range(1):
             print(f"Running Jacobi #{i}")
-            X=make_compatible_blob_symmetric(1000)
+            X=make_compatible_blob_symmetric(100)
             A_real, V_real = spkmeans_utils.full_jacobi(X)
             A_fake, V_fake = self.spkmeansmodule.full_jacobi(X)
             A_real, V_real = np.array(A_real), np.array(V_real)
@@ -131,12 +131,18 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
     def test_full_spk_1_to_5(self):
         spkmeansmodule = self.spkmeansmodule
         X = [
-            [1,1],
-            [2,2],
-            [3,3],
-            [4,4],
-            [5,5],
-            [6,6]
+            [0.010,0.010],
+            [0.011,0.011],
+            [0.012,0.012],
+            [0.013,0.013],
+            [0.210,0.210],
+            [0.211,0.211],
+            [0.212,0.212],
+            [0.213,0.213],
+            [0.810,0.810],
+            [0.811,0.811],
+            [0.812,0.812],
+            [0.813,0.813],
         ]
         k=0
         L_norm = np.around(spkmeansmodule.full_lnorm(X),4).tolist()
@@ -150,7 +156,14 @@ class TestFit(TestIntegrationBase, unittest.TestCase):
         U = [x[:k] for x in eigenvectors]
         U_ref = [x[:k] for x in eigenvectors_ref]
         T = spkmeansmodule.normalize_matrix_by_rows(U)
-        T_ref = spkmeans_utils.normalize_matrix_by_rows(U_ref)
+        T = np.array(spkmeansmodule.full_spk_1_to_5(X,0))
+        T_ref = np.array(spkmeans_utils.normalize_matrix_by_rows(U_ref))
+        diff_T = np.sum(np.abs(T-T_ref))
+        print(f"results diff {diff_T}")
+        sys.path.insert(0, self.path_to_repo_folder)
+        import spkmeans
+        results=spkmeans.calc_kmeanspp(k,T)
+        print("bye T")
     
     def test_PTAP(self):
         n = 20
