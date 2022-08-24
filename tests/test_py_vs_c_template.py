@@ -22,7 +22,7 @@ ROUNDING_DIGITS = 3
 
 class TestAgainstData(TestIntegrationBase, unittest.TestCase):
 
-    path_to_repo_folder: str = os.environ['HOME']+"/repos/softproj"
+    path_to_repo_folder: str = os.environ['HOME']+"/workspace/softproj"
     path_to_writable_folder: str = "/tmp"
 
     @classmethod

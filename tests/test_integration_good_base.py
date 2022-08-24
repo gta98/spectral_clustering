@@ -18,7 +18,7 @@ class TestIntegrationGoodBase(TestIntegrationBase):
     Testing class for good cases - valid inputs, in standalone C
     """
 
-    path_to_repo_folder: str = "/home/fakename/repos/softproj"
+    path_to_repo_folder: str = "/home/fakename/workspace/softproj"
     path_to_writable_folder: str = "/tmp"
 
     def test_wam(self):

@@ -49,7 +49,7 @@
       "name": "C Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/home/fakename/repos/softproj/output/spkmeans",
+      "program": "/home/fakename/workspace/softproj/output/spkmeans",
       "args": [
         "wam",
         "resources/test_valgrind/threexfour.csv"
