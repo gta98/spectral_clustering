@@ -963,6 +963,7 @@ static PyObject* test_calc_L_norm(PyObject* self, PyObject* args) { /* W, D */
 
 
 static PyMethodDef spkmeansmoduleMethods[] = {
+#ifdef FLAG_DEBUG
     {"test_read_data", 
       (PyCFunction) test_read_data,
       METH_VARARGS, 
@@ -971,6 +972,7 @@ static PyMethodDef spkmeansmoduleMethods[] = {
       (PyCFunction) test_write_data,
       METH_VARARGS, 
       PyDoc_STR("This method performs the k-means algorithm with the specified arguments")},
+#endif
     {"full_wam", 
       (PyCFunction) full_wam,
       METH_VARARGS, 
