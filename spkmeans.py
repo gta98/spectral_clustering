@@ -1,13 +1,14 @@
 import os
 import sys
-from typing import List,NoReturn
+from typing import List
 import numpy as np
 import pandas as pd
 import spkmeansmodule
 import mykmeanssp
 from enum import Enum
-from typing import List, Union, NoReturn, Optional
+from typing import List, Union, Optional
 import numpy as np
+NoReturn = None # this is what I get for being on the latest version...
 
 FLAG_DEBUG = True or bool(int(os.environ.get('FLAG_DEBUG','0')))
 FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
