@@ -1,7 +1,8 @@
 #include "eigengap.h"
 
 void reverse_list(uint* l, uint n) {
-    for (uint i=0; i<((uint)(n/2)); i++) {
+    uint i;
+    for (i=0; i<((uint)(n/2)); i++) {
         l[i]=l[n-1-i];
     }
 }
