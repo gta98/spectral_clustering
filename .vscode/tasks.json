@@ -27,13 +27,13 @@
         },
         {
             "label": "Build C",
-            "command": "~/repos/softproj/scripts/build_c",
+            "command": "~/workspace/softproj/scripts/build_c",
             "args": [],
             "type": "shell",
         },
         {
             "label": "Copy Resources",
-            "command": "~/repos/softproj/scripts/copy",
+            "command": "~/workspace/softproj/scripts/copy",
             "args": [],
             "type": "shell",
         }

@@ -36,8 +36,8 @@ def make_compatible_blob_symmetric(n=100) -> List[List[float]]:
 
 class TestFit(TestIntegrationBase, unittest.TestCase):
 
-    path_to_repo_folder: str = os.environ['HOME']+"/repos/softproj"
-    path_to_writable_folder: str = os.environ['HOME']+"/repos/softproj"
+    path_to_repo_folder: str = os.environ['HOME']+"/workspace/softproj"
+    path_to_writable_folder: str = os.environ['HOME']+"/workspace/softproj"
     path_to_trash_folder: str = "/tmp"
 
     @classmethod
