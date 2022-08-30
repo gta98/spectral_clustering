@@ -184,15 +184,16 @@ void calc_jacobi(mat_t* A_original, mat_t** eigenvectors, mat_t** eigenvalues) {
     *eigenvectors = V;
     *eigenvalues = A_tag;
 
-    rotations = 0;
-    while (true) {
-        perform_A_V_iteration(A_tag, A, V);
-
-        rotations += 1;
-
-        if (is_jacobi_convergence(A_tag, A, rotations)) break;
-
-        mat_copy_to(A, A_tag);
+    if (is_diagonal(A_original)) {
+        /* do nothing */
+    } else {
+        rotations = 0;
+        while (true) {
+            perform_A_V_iteration(A_tag, A, V);
+            rotations += 1;
+            if (is_jacobi_convergence(A_tag, A, rotations)) break;
+            mat_copy_to(A, A_tag);
+        }
     }
 
     if (A) mat_free(&A);
