@@ -22,11 +22,12 @@ cp -r $REPODIR/generics/*.h $WORKDIR/generics
 cp -r $REPODIR/algorithms/*.c $WORKDIR/algorithms
 cp -r $REPODIR/algorithms/*.h $WORKDIR/algorithms
 cp -r $REPODIR/comp.sh $WORKDIR
-rm $WORKDIR/test*.py
-rm $WORKDIR/README.md
 
 cd $WORKDIR/..
+rm $FOLDERNAME/test*.py
+rm $FOLDERNAME/README.md
 zip -r $FOLDERNAME.zip $FOLDERNAME
+echo Folder is $FOLDERNAME in $WORKDIR
 popd
 cp $WORKDIR/../$FOLDERNAME.zip $SAVEDIR
 

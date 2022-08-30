@@ -1,5 +1,11 @@
 #include "eigengap.h"
 
+void reverse_list(uint* l, uint n) {
+    for (uint i=0; i<((uint)(n/2)); i++) {
+        l[i]=l[n-1-i];
+    }
+}
+
 status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
     real* eigenvalues;
     status_t status;
@@ -24,6 +30,10 @@ status_t sort_cols_by_vector_desc(mat_t* A, mat_t* v) {
         status = ERROR_MALLOC;
         goto sort_cols_by_vector_desc_finish;
     }
+
+    #ifdef FLAG_DEBUG_REVERSE_SORTING_INDICES
+    reverse_list(sorting_indices, n);
+    #endif
 
     for (i=0; i<n; i++) {
         mat_set(v, i, sorting_indices[i],
@@ -57,7 +67,10 @@ uint calc_k(mat_t* eigenvalues) {
         assertd_is_square(eigenvalues);
         for (i=0; i<half_n; i++) {
             eigengap_val = mat_get(eigenvalues,i,i)-mat_get(eigenvalues,i+1,i+1);
-            assertd(eigengap_val>=0);
+            #ifndef FLAG_DEBUG_REVERSE_SORTING_INDICES
+            assertd(eigengap_val>=0); 
+            #endif
+            eigengap_val = real_abs(eigengap_val);
             if (eigengap_val > max_eigengap_val) {
                 max_eigengap_idx = i;
                 max_eigengap_val = eigengap_val;
@@ -66,7 +79,10 @@ uint calc_k(mat_t* eigenvalues) {
     } else if (eigenvalues->h == 1) {
         for (i=0; i<half_n; i++) {
             eigengap_val = mat_get(eigenvalues,0,i)-mat_get(eigenvalues,0,i+1);
-            assertd(eigengap_val>=0);
+            #ifndef FLAG_DEBUG_REVERSE_SORTING_INDICES
+            assertd(eigengap_val>=0); 
+            #endif
+            eigengap_val = real_abs(eigengap_val);
             if (eigengap_val > max_eigengap_val) {
                 max_eigengap_idx = i;
                 max_eigengap_val = eigengap_val;

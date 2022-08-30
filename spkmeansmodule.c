@@ -499,7 +499,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
     L_norm = calc_full_lnorm(data); /* NEED TO FREE L_norm */
     
     calc_jacobi(L_norm, &eigenvectors, &eigenvalues); /* NEED TO FREE eigenvectors, eigenvalues */
-    if (!eigenvectors || !eigenvalues) goto spk_had_a_problem;
+    if (!eigenvectors || !eigenvalues) goto spk_could_not_calc_jacobi;
     status = sort_cols_by_vector_desc(eigenvectors, eigenvalues);
     if (status != SUCCESS) goto spk_had_a_problem;
     if (k==0) k = calc_k(eigenvalues);
@@ -517,6 +517,8 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
 
     spk_tuple_failed_malloc:
     /* set error here */
+    goto spk_free_and_return;
+    spk_could_not_calc_jacobi:
     goto spk_free_and_return;
     spk_had_a_problem:
     /* set error here */
