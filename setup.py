@@ -11,7 +11,7 @@ cwd = os.path.abspath(os.path.dirname(__file__))
 PATH_SRC = os.environ.get('PATH_SRC') or f"{cwd}"
 PATH_OUT = os.environ.get('PATH_OUT') or f"{cwd}"
 
-PRECONFIGURED_CFLAGS = sysconfig.get_config_var('CFLAGS').split()
+PRECONFIGURED_CFLAGS = []#sysconfig.get_config_var('CFLAGS').split()
 
 os.makedirs(f"{PATH_OUT}", exist_ok=True)
 
@@ -39,12 +39,13 @@ setup(
                 f"{PATH_SRC}/kmeans.c"
             ],
             extra_compile_args=[
-                "-Wall", "-Wextra", "-Werror", "-pedantic-errors", "-lm",
+                "-Wall", "-Wextra", "-Werror", "-lm",
+                #"-pedantic-errors",
                 "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
-                f"-D FLAG_DEBUG",
-                f"-D FLAG_PRINTD",
-                f"-D FLAG_ASSERTD",
+                #f"-D FLAG_DEBUG",
+                #f"-D FLAG_PRINTD",
+                #f"-D FLAG_ASSERTD",
             ] + PRECONFIGURED_CFLAGS,
         ),
         Extension(
@@ -65,13 +66,14 @@ setup(
                 f"{PATH_SRC}/spkmeansmodule.c"
             ],
             extra_compile_args=[
-                "-Wall", "-Wextra", "-Werror", "-pedantic-errors", "-lm",
+                "-Wall", "-Wextra", "-Werror", "-lm",
+                #"-pedantic-errors"
                 "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
-                "-Wno-error=unused-function", # FIXME - before submitting, remove redundant functions
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
-                f"-D FLAG_DEBUG",
-                f"-D FLAG_PRINTD",
-                f"-D FLAG_ASSERTD"
+                #f"-D FLAG_DEBUG",
+                #f"-D FLAG_PRINTD",
+                #f"-D FLAG_ASSERTD",
+                #f"-D FLAG_DEBUG_REVERSE_SORTING_INDICES"
             ] + PRECONFIGURED_CFLAGS,
         ),
     ],
