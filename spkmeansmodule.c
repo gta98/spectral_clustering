@@ -1060,7 +1060,11 @@ static struct PyModuleDef spkmeans_moduledef = {
     "spkmeansmodule", /* name of module */
     NULL, /* module documentation, may be NULL */
     -1,  /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
-    spkmeansmoduleMethods /* the PyMethodDef array from before containing the methods of the extension */
+    spkmeansmoduleMethods, /* the PyMethodDef array from before containing the methods of the extension */
+    NULL, /* m_slots */
+    NULL, /* m_traverse */
+    NULL, /* m_clear */
+    NULL /* m_free */
 };
 
 PyMODINIT_FUNC PyInit_spkmeansmodule(void)

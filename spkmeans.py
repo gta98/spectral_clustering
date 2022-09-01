@@ -10,7 +10,7 @@ from typing import List, Union, Optional
 import numpy as np
 NoReturn = None # this is what I get for being on the latest version...
 
-FLAG_DEBUG = True or bool(int(os.environ.get('FLAG_DEBUG','0')))
+FLAG_DEBUG = False or bool(int(os.environ.get('FLAG_DEBUG','0')))
 FLAG_VERBOSE_PRINTS = True and FLAG_DEBUG
 FLAG_VERBOSE_ERRORS = True and FLAG_DEBUG
 FLAG_EXIT_GRACEFULLY = False or not FLAG_DEBUG

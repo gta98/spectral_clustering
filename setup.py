@@ -41,7 +41,6 @@ setup(
             extra_compile_args=[
                 "-Wall", "-Wextra", "-Werror", "-lm",
                 #"-pedantic-errors",
-                "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 #f"-D FLAG_DEBUG",
                 #f"-D FLAG_PRINTD",
@@ -68,7 +67,6 @@ setup(
             extra_compile_args=[
                 "-Wall", "-Wextra", "-Werror", "-lm",
                 #"-pedantic-errors"
-                "-Wno-error=missing-field-initializers", # FIXME - Issue in Python 3.8: https://github.com/SELinuxProject/setools/issues/31
                 "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 #f"-D FLAG_DEBUG",
                 #f"-D FLAG_PRINTD",
