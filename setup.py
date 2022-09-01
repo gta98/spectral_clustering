@@ -41,7 +41,6 @@ setup(
             extra_compile_args=[
                 "-Wall", "-Wextra", "-Werror", "-lm",
                 #"-pedantic-errors",
-                "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 #f"-D FLAG_DEBUG",
                 #f"-D FLAG_PRINTD",
                 #f"-D FLAG_ASSERTD",
@@ -67,7 +66,6 @@ setup(
             extra_compile_args=[
                 "-Wall", "-Wextra", "-Werror", "-lm",
                 #"-pedantic-errors"
-                "-Wno-error=unused-parameter", # FIXME - what do I do with "PyObject* self"?
                 #f"-D FLAG_DEBUG",
                 #f"-D FLAG_PRINTD",
                 #f"-D FLAG_ASSERTD",

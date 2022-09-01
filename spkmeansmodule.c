@@ -73,7 +73,7 @@ static status_t parse_mat_and_k_from_args(PyObject* args, mat_t** data, uint* k)
     }
 }
 
-static PyObject* full_wam(PyObject* self, PyObject* args) {
+static PyObject* full_wam(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* data;
     mat_t* result;
     PyObject* py_result;
@@ -89,7 +89,7 @@ static PyObject* full_wam(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_ddg(PyObject* self, PyObject* args) {
+static PyObject* full_ddg(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* data;
     mat_t* result;
     PyObject* py_result;
@@ -105,7 +105,7 @@ static PyObject* full_ddg(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_ddg_inv_sqrt(PyObject* self, PyObject* args) {
+static PyObject* full_ddg_inv_sqrt(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* data;
     mat_t* result;
     PyObject* py_result;
@@ -121,7 +121,7 @@ static PyObject* full_ddg_inv_sqrt(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_lnorm(PyObject* self, PyObject* args) {
+static PyObject* full_lnorm(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* data;
     mat_t* result;
     PyObject* py_result;
@@ -137,7 +137,7 @@ static PyObject* full_lnorm(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* calc_lnorm_capi(PyObject* self, PyObject* args) {
+static PyObject* calc_lnorm_capi(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* W;
     mat_t* D_inv_sqrt;
     mat_t* result;
@@ -154,7 +154,7 @@ static PyObject* calc_lnorm_capi(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
+static PyObject* _full_jacobi(PyObject* Py_UNUSED(self), PyObject* args, bool sort) {
     PyObject* py_result_vectors;
     PyObject* py_result_values;
     PyObject* py_result_tuple;
@@ -227,15 +227,15 @@ static PyObject* _full_jacobi(PyObject* self, PyObject* args, bool sort) {
     return py_result_tuple;
 }
 
-static PyObject* full_jacobi(PyObject* self, PyObject* args) {
-    return _full_jacobi(self, args, false);
+static PyObject* full_jacobi(PyObject* Py_UNUSED(self), PyObject* args) {
+    return _full_jacobi(NULL, args, false);
 }
 
-static PyObject* full_jacobi_sorted(PyObject* self, PyObject* args) {
-    return _full_jacobi(self, args, true);
+static PyObject* full_jacobi_sorted(PyObject* Py_UNUSED(self), PyObject* args) {
+    return _full_jacobi(NULL, args, true);
 }
 
-static PyObject* normalize_matrix_by_rows(PyObject* self, PyObject* args) {
+static PyObject* normalize_matrix_by_rows(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_data;
     PyObject* py_result;
     mat_t* data;
@@ -451,7 +451,7 @@ static PyObject* MatDiag_to_PyListFloat(mat_t* mat) {
     return py_mat;
 }
 
-static PyObject* full_calc_k(PyObject* self, PyObject* args) {
+static PyObject* full_calc_k(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_data;
     PyObject* py_result;
     mat_t* data;
@@ -472,7 +472,7 @@ static PyObject* full_calc_k(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
+static PyObject* full_spk_1_to_5(PyObject* Py_UNUSED(self), PyObject* args) {
     mat_t* data;
     PyObject* py_T;
     /*PyObject* py_result_tuple;
@@ -534,7 +534,7 @@ static PyObject* full_spk_1_to_5(PyObject* self, PyObject* args) {
 
 #ifdef FLAG_DEBUG
 
-static PyObject* test_read_data(PyObject* self, PyObject* args) {
+static PyObject* test_read_data(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_path;
     PyObject* py_mat;
     mat_t* mat;
@@ -558,7 +558,7 @@ static PyObject* test_read_data(PyObject* self, PyObject* args) {
     return py_mat;
 }
 
-static PyObject* test_write_data(PyObject* self, PyObject* args) {
+static PyObject* test_write_data(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_path;
     PyObject* py_mat;
     mat_t* mat;
@@ -644,23 +644,23 @@ static PyObject* wrap_mat_cellwise(void (*operation)(mat_t*, mat_t*, mat_t*), Py
     return py_dst;
 }
 
-static PyObject* wrap_mat_cellwise_add(PyObject* self, PyObject* args) {
+static PyObject* wrap_mat_cellwise_add(PyObject* Py_UNUSED(self), PyObject* args) {
     return wrap_mat_cellwise(&mat_add_cellwise, args);
 }
 
-static PyObject* wrap_mat_cellwise_sub(PyObject* self, PyObject* args) {
+static PyObject* wrap_mat_cellwise_sub(PyObject* Py_UNUSED(self), PyObject* args) {
     return wrap_mat_cellwise(&mat_sub_cellwise, args);
 }
 
-static PyObject* wrap_mat_cellwise_mul(PyObject* self, PyObject* args) {
+static PyObject* wrap_mat_cellwise_mul(PyObject* Py_UNUSED(self), PyObject* args) {
     return wrap_mat_cellwise(&mat_mul_cellwise, args);
 }
 
-static PyObject* wrap_mat_cellwise_div(PyObject* self, PyObject* args) {
+static PyObject* wrap_mat_cellwise_div(PyObject* Py_UNUSED(self), PyObject* args) {
     return wrap_mat_cellwise(&mat_mul_cellwise, args);
 }
 
-static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
+static PyObject* wrap_matmul(PyObject* Py_UNUSED(self), PyObject* mat_tuple) {
     PyObject* py_mat_1;
     PyObject* py_mat_2;
     mat_t* mat_1;
@@ -715,7 +715,7 @@ static PyObject* wrap_matmul(PyObject* self, PyObject* mat_tuple) {
     return py_dst;
 }
 
-static PyObject* test_PTAP(PyObject* self, PyObject* mat_tuple) {
+static PyObject* test_PTAP(PyObject* Py_UNUSED(self), PyObject* mat_tuple) {
     PyObject* py_A;
     PyObject* py_P;
     mat_t* A;
@@ -776,7 +776,7 @@ static PyObject* test_PTAP(PyObject* self, PyObject* mat_tuple) {
     return py_dst;
 }
 
-static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* self, PyObject* args) {
+static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_mat;
     PyObject* py_indices;
     mat_t* mat;
@@ -849,7 +849,7 @@ static PyObject* wrap_reorder_mat_cols_by_indices(PyObject* self, PyObject* args
     return py_dst;
 }
 
-static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
+static PyObject* wrap_sort_cols_by_vector_desc(PyObject* Py_UNUSED(self), PyObject* args) {
     PyObject* py_mat;
     PyObject* py_eigenvalues;
     mat_t* mat;
@@ -917,7 +917,7 @@ static PyObject* wrap_sort_cols_by_vector_desc(PyObject* self, PyObject* args) {
     return py_dst;
 }
 
-static PyObject* test_calc_L_norm(PyObject* self, PyObject* args) { /* W, D */
+static PyObject* test_calc_L_norm(PyObject* Py_UNUSED(self), PyObject* args) { /* W, D */
     PyObject* py_W; PyObject* py_D;
     mat_t* W; mat_t* D; mat_t* result;
     PyObject* py_result;
