@@ -10,7 +10,7 @@
 /*#define printd(fmt, ...) printf(fmt, __VA_ARGS__);*/
 #define printd(args) printf args
 #else
-#define printd(args) /**/
+#define printd(args) {};
 #endif
 
 #if defined(FLAG_DEBUG)

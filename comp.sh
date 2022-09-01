@@ -7,9 +7,6 @@ PATH_OUT=${PATH_OUT:-'.'}
 mkdir -p $PATH_OUT
 
 gcc -ansi -Wall -Wextra -Werror -pedantic-errors \
-    -D FLAG_DEBUG \
-    -D FLAG_PRINTD \
-    -D FLAG_ASSERTD \
     -I $PATH_SRC \
     $PATH_SRC/generics/common_utils.c \
     $PATH_SRC/generics/matrix.c \
