@@ -65,7 +65,7 @@ real mat_get(mat_t* mat, uint i, uint j) {
     }
 
     if ((i >= mat->h) || (j >= mat->w)) {
-        printd("mat_get: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
+        printd(("mat_get: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w));
         #ifdef FLAG_DEBUG
         exit(1);
         #endif
@@ -84,7 +84,7 @@ void mat_set(mat_t* mat, uint i, uint j, const real new_value) {
     }
 
     if ((i >= mat->h) || (j >= mat->w)) {
-        printd("mat_set: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w);
+        printd(("mat_set: Attempted to access invalid matrix indices: %d >= %d or %d >= %d\n", i, mat->h, j, mat->w));
         #ifdef FLAG_DEBUG
         exit(1);
         #endif
@@ -212,7 +212,7 @@ void mat_mul(mat_t* dst, mat_t* mat_lhs, mat_t* mat_rhs) {
         for (j=0; j<dst->w; j++) {
             value = 0;
             for (k=0; k<mat_lhs->w; k++) {
-                /*printd("getting %d, %d, %d\n", i, j, k);*/
+                /*printd(("getting %d, %d, %d\n", i, j, k));*/
                 val_lhs = mat_get(mat_lhs, i, k);
                 val_rhs = mat_get(mat_rhs, k, j);
                 value += val_lhs*val_rhs;

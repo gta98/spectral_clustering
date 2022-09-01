@@ -8,9 +8,9 @@
 
 #if defined(FLAG_DEBUG) && defined(FLAG_PRINTD)
 /*#define printd(fmt, ...) printf(fmt, __VA_ARGS__);*/
-#define printd printf
+#define printd(args) printf args
 #else
-#define printd(fmt, ...) {}
+#define printd(args) /**/
 #endif
 
 #if defined(FLAG_DEBUG)
@@ -22,9 +22,9 @@
 #if defined(FLAG_DEBUG) && defined(FLAG_ASSERTD)
 #define assertd(condition) \
     if (!(condition)) { \
-        printd("\n"); \
-        printd("ERROR: on line %d, in file %s:\n", __LINE__, __FILE__ );\
-        printd("       assertion triggered, the following condition does not hold: " #condition "\n"); \
+        printd(("\n")); \
+        printd(("ERROR: on line %d, in file %s:\n", __LINE__, __FILE__ ));\
+        printd(("       assertion triggered, the following condition does not hold: " #condition "\n")); \
         assert(condition); \
         exitd(1); \
     }

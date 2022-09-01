@@ -357,22 +357,22 @@ status_t read_data(mat_t** dst, char* path_to_input) {
     w = get_number_of_dimensions(fh);
     h = get_number_of_lines(fh);
     if ((w <= 0) || (h <= 0)) {
-        printd("Could not fetch dimensions- (h,w)=(%d,%d)\n", h,w);
+        printd(("Could not fetch dimensions- (h,w)=(%d,%d)\n", h,w));
         fclose(fh);
         return ERROR_FORMAT; /* FIXME - does this yield "generic" or "invalid"? */
     }
 
     x = mat_init(h, w);
     if (!x) {
-        printd("cannot allocate!\n");
+        printd(("cannot allocate!\n"));
         return ERROR_MALLOC;
     }
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
             num_read_result = FILE_get_next_num(fh, &num);
             if (num_read_result != SUCCESS_VALID_CONTENT) {
-                printd("WEE WOO! We have a problem\n");
-                printd("num @ index (%d, %d) is not parsed properly, result is %d\n", i, j, num_read_result);
+                printd(("WEE WOO! We have a problem\n"));
+                printd(("num @ index (%d, %d) is not parsed properly, result is %d\n", i, j, num_read_result));
                 fclose(fh);
                 mat_free(&x);
                 return ERROR_FORMAT; /* FIXME - generic or invalid? */
@@ -393,7 +393,7 @@ status_t write_data(mat_t* src, char* path_to_output) {
     FILE* fh;
 
     fh = fopen(path_to_output, "wb");
-    if (!fh) printd("cannot open\n");
+    if (!fh) printd(("cannot open\n"));
     if (!fh) return ERROR_FOPEN;
 
     /* we assume that every line gets the same number of commas */
