@@ -1,15 +1,23 @@
-This project is an assignment I was given in one of my courses
+# Spectral Clustering
 
-It performs Kmeans clustering on a given dataset (csv/txt) using the Kmeans++ initialization method, using Numpy, CPython, and testing against Sklearn
+## What is this?
 
-I implemented the algorithm in bare C, and wrote a wrapper in CPython for easy interfacing with Python - see `source/kmeans.c`
+This is my final assignment in a course I took, "Software Project" (0368.2161)
 
-The initialization (Kmeans++) is performed in `source/kmeans_pp.py` (which is also where you'll find the main thread of the program) in `KMeansPlusPlus()`.
+The code performs [Spectral Clustering](https://en.wikipedia.org/wiki/Spectral_clustering) on any given comma-delimited csv dataset - detailed documentation of the algorithm itself can be found in `./tests/resources/sp_project.pdf`, which was provided by course staff
 
-For the initialization part, there is also a more elegant solution in `KMeansPlusPlus_original()`, however it randomizes in a way that is slightly different than the one provided in the example outputs, so I ended up not using it.
+## Omg wowa wiwa! How did you do this?
 
-I also wrote some pretty extensive tests - among other things, comparing the results to sklearn, in `source/tests.py`
+- I reused my previous work on [kmeans++](https://github.com/gta98/kmeansplusplus)
 
-* I am aware of the mess in the file structure, also I would usually try to modularize the files more, but the project required the files to have specific names
+- I significantly optimized some parts of the algorithm by hardcoding matrix multiplication on rotation matrices, which are very close in our case to the identity matrix -  this greatly reduced computational complexity in Jacobi iterations
 
-* I also didn't pick the uninformative error messages
+- Most of the "heavy lifting" is done in C, with Python hooks in `./spkmeansmodule.c`
+
+- You can find a bunch of unit tests in `./tests`
+
+## But are there any limitations?
+
+- The data is loaded straight to memory, however it should be trivial, by modifying `matrix.c`, to allow for (slow) caching and even data manipulation on persistent storage, if we're dealing with extremely large amounts of data (i.e. many datapoints / large dimensionality)
+
+- Yes! Many more
