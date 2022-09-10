@@ -4,7 +4,10 @@ void calc_c_s(mat_t* A, uint i, uint j, real* c, real* s) {
     real theta, t;
     real theta_sign, A_i_i, A_i_j, A_j_j;
     A_i_i=mat_get(A,i,i); A_i_j=mat_get(A,i,j); A_j_j=mat_get(A,j,j);
-    theta_sign = real_sign(A_j_j-A_i_i)*real_sign(A_i_j);
+    theta_sign = 1;
+    if (A_j_j-A_i_i < 0) theta_sign *= -1;
+    if (A_i_j < 0) theta_sign *= -1;
+    if (A_j_j-A_i_i == 0) theta_sign = 1;
     if (A_i_j != 0) {
         theta = (A_j_j-A_i_i) / (((real)2.0)*A_i_j);
         t = theta_sign / (real_abs(theta) + sqrt((real)1 + (theta*theta)));

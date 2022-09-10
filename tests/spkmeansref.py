@@ -190,7 +190,7 @@ def calc_P_ij(A: np.ndarray, i: int, j: int) -> np.ndarray:
     assertd(i<j)
     P = identity_matrix_like(A)
     c,s = calc_c_s(A,i,j)
-    print(f"Py: c={c}, s={s}")
+    #print(f"Py: c={c}, s={s}")
     P[i,i] = P[j,j] = c
     P[i,j] = s
     P[j,i] = -s
@@ -208,6 +208,7 @@ def get_indices_of_max_element(A: np.ndarray) -> Tuple:
             if val > max_val:
                 i, j = k, l
                 max_val = val
+    assert i<j
     return min(i,j), max(i,j)
 
 
@@ -240,7 +241,13 @@ def is_jacobi_convergence(A_tag: np.ndarray, A: np.ndarray, rotations: int) -> b
 
 def calc_c_s(A: np.ndarray, i:int, j:int) -> Tuple[float,float]:
     A_j_j, A_i_i, A_i_j = A[j,j], A[i,i], A[i,j]
-    theta_sign = sign(A_j_j-A_i_i)*sign(A_i_j)
+    theta_sign = 1
+    if A_j_j-A_i_i < 0:
+        theta_sign *= -1
+    if A_i_j < 0:
+        theta_sign *= -1
+    if A_j_j-A_i_i == 0 and A_i_j != 0:
+        theta_sign = 1
     if (A_i_j != 0):
         theta = (A_j_j - A_i_i) / (2*A_i_j)
         t = theta_sign / (np.abs(theta) + np.sqrt(1+(theta*theta)))
